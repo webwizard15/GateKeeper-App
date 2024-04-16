@@ -12,7 +12,7 @@ import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: DefaultFirebaseOptions.currentPlatform
   );
   runApp(
     const MaterialApp(
