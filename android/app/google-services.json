@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "545788962306",
+    "project_id": "gatekeeper-8194e",
+    "storage_bucket": "gatekeeper-8194e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:545788962306:android:15cc2b0f30e2ea5b32291b",
+        "android_client_info": {
+          "package_name": "com.example.gate_keeper_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAxxVEsWaD58CupPz88xlrYqPGXzaAMaA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
