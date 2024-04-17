@@ -8,7 +8,7 @@ class ResidentMenuScreen extends StatelessWidget{
   Widget build(BuildContext context){
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize:Size.fromHeight(kToolbarHeight),
+        preferredSize:const Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration:BoxDecoration(
             boxShadow: [
@@ -16,7 +16,7 @@ class ResidentMenuScreen extends StatelessWidget{
                 color: Colors.grey.withOpacity(0.5),
                 blurRadius: 7,
                 spreadRadius: 5,
-                offset:Offset(0,3)
+                offset:const Offset(0,3)
               ),
             ]
           ),
@@ -27,21 +27,27 @@ class ResidentMenuScreen extends StatelessWidget{
           width: 200,
         child: ListView(
           children: [
-                DrawerHeader(
+              const  DrawerHeader(
+                  padding: EdgeInsets.all(10),
                 child: Column(
                   children: [
                     CircleAvatar(
                       backgroundImage:AssetImage("assets/Man.png"),
                       radius: 50,
                     ),
-                    SizedBox(height: 10),
-                   Text("Anmol Shukla", style: TextStyle(fontWeight: FontWeight.bold),
-                    )
+                   Padding(
+                     padding: EdgeInsets.only(top:10.0),
+                     child: Text("Anmol Shukla",
+                       style: TextStyle(
+                           fontWeight: FontWeight.bold
+                       ),
+                      ),
+                   )
                   ],
                 ),
             ),
             ListTile(
-              leading: Icon(Icons.event_note_outlined, size:20),
+              leading: Icon(Icons.event_note_outlined, size:25),
               title:Text("Complaints",
                 textAlign: TextAlign.start,
                 style: TextStyle(
@@ -54,7 +60,7 @@ class ResidentMenuScreen extends StatelessWidget{
               },
             ),
             ListTile(
-              leading: Icon(Icons.people, size:20),
+              leading: Icon(Icons.people, size:25),
               title:Text("Visitors",
                 textAlign: TextAlign.start,
                 style: TextStyle(
@@ -67,7 +73,7 @@ class ResidentMenuScreen extends StatelessWidget{
               },
             ),
             ListTile(
-              leading: Icon(Icons.phone_android, size:20),
+              leading: Icon(Icons.phone_android, size:25),
               title:Text("Contact us",
                 textAlign: TextAlign.start,
                 style: TextStyle(
@@ -80,7 +86,7 @@ class ResidentMenuScreen extends StatelessWidget{
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout, size:20),
+              leading: Icon(Icons.logout, size:25),
               title:Text("Log Out",
                 textAlign: TextAlign.start,
                 style: TextStyle(
@@ -93,7 +99,10 @@ class ResidentMenuScreen extends StatelessWidget{
               },
             ),
             Divider(
-
+              thickness:2,
+              endIndent: 8,
+              indent: 8
+              ,
             ),
           ],
         )

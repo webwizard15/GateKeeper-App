@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:gate_keeper_app/AdminScreens/admin_sign_in_screen.dart';
 import 'package:gate_keeper_app/SplashScreen/splash_screen.dart';
@@ -11,11 +12,16 @@ import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
 
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([  //setting whole app to potraid mode
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform
   );
   runApp(
     const MaterialApp(
+
       debugShowCheckedModeBanner: false,
       home:SplashScreen(),
     ),

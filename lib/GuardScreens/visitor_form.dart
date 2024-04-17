@@ -1,5 +1,5 @@
 import 'package:flutter/Material.dart';
-import 'package:flutter/services.dart';  // this is imported for using length limiting factor
+import 'package:flutter/services.dart';// this is imported for using length limiting factor
 
 class VisitorForm extends StatefulWidget{
   const VisitorForm({super.key});
@@ -10,12 +10,12 @@ class _VisitorFormState extends State <VisitorForm> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _purposeController =TextEditingController();
-  String _towers = "";
-  String _flats = "";
-  List <String>towersList = [
+  var _towers;
+  var _flats;
+  List towersList = [
     "Tower 1","Tower 2","Tower 3","Tower 4","Tower 5","Tower 6",
   ] ;
-  List <String> flatsList =["FLat 101","FLat 102 ","FLat 103","FLat 104","FLat 105","FLat 106","FLat 107","FLat 108" ];
+  List flatsList =["FLat 101","FLat 102 ","FLat 103","FLat 104","FLat 105","FLat 106","FLat 107","FLat 108" ];
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -61,7 +61,7 @@ class _VisitorFormState extends State <VisitorForm> {
                   top: 82,
                   child: IconButton(
                     onPressed: (){},
-                      icon: Icon(Icons.camera_alt),
+                      icon: const Icon(Icons.camera_alt),
                   ),
                 ),
               ],
@@ -111,9 +111,9 @@ class _VisitorFormState extends State <VisitorForm> {
                   menuMaxHeight: 200,
                   hint:const Text("Towers"),
                   value: _towers, // default selected item is null
-                  onChanged: (String? newValue){
+                  onChanged: (newValue){
                     setState(() {
-                      _towers=newValue!;   //selected item is passed into a variable and rebuilt the Widget
+                      _towers=newValue;   //selected item is passed into a variable and rebuilt the Widget
                     });
                   },
                   items: towersList.map((e) => DropdownMenuItem(
@@ -129,9 +129,9 @@ class _VisitorFormState extends State <VisitorForm> {
                   menuMaxHeight: 200,
                   hint: const Text("Flats"),
                   value: _flats,
-                  onChanged: (String ? newValue){
+                  onChanged: (newValue){
                     setState(() {
-                      _flats = newValue!; //asserting upon clicking variable won't be null
+                      _flats = newValue;
                     });
                   },
                   items: flatsList.map((e) => DropdownMenuItem(
@@ -161,6 +161,9 @@ class _VisitorFormState extends State <VisitorForm> {
             const SizedBox(height: 20),
 
             ElevatedButton(
+                style: ButtonStyle(
+                    elevation: MaterialStateProperty.all(8)
+                ),
                 onPressed: (){
 
                 },

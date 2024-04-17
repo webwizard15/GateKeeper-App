@@ -1,42 +1,36 @@
-import 'package:flutter/Material.dart';
-import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
+import 'package:flutter/material.dart';
+import 'package:gate_keeper_app/AdminScreens/add_employee.dart';
 
-class GuardMenu extends StatefulWidget {
-  const GuardMenu({super.key});
-
+class AdminMenuScreen extends StatefulWidget {
+  const AdminMenuScreen({super.key});
   @override
-  State<GuardMenu> createState() => _GuardMenuState();
+  State<AdminMenuScreen> createState() => _AdminMenuScreenState();
 }
 
-class _GuardMenuState extends State<GuardMenu> {
+class _AdminMenuScreenState extends State<AdminMenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        //creating customise tool bar
-        preferredSize:
-            const Size.fromHeight(kToolbarHeight), //setting standard height
+        preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
                 blurRadius: 7,
-                offset: const Offset(0, 3), // changes position of shadow
+                spreadRadius: 5,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: AppBar(
-            centerTitle: true,
+            elevation: 0,
             title: const Text(
-              'Menu',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ), // App bar color
-            elevation: 0, // Remove default app bar elevation
+              "Management Portal",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
           ),
         ),
       ),
@@ -46,46 +40,65 @@ class _GuardMenuState extends State<GuardMenu> {
           children: [
             const DrawerHeader(
               padding: EdgeInsets.all(10),
-              //first is header
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CircleAvatar(
-                    backgroundImage: AssetImage("assets/Guard.png"),
                     radius: 50,
+                    backgroundImage: AssetImage("assets/Man.png"),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 10.0),
+                    padding: EdgeInsets.only(top: 10),
                     child: Text(
-                      "Anmol Shukla",
-                      style: TextStyle(fontWeight: FontWeight.bold,),
+                      "Anmol Shukla", // Should not exceed ore than 18 words
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
             ListTile(
-              leading: const Icon(
-                Icons.logout,
-                size: 25,
+              leading: const Icon(Icons.note_outlined, size: 25),
+              title: const Text(
+                "Notice",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                ),
               ),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: const Icon(Icons.home_work_outlined, size: 25),
+              title: const Text(
+                "Towers/Flats",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                ),
+              ),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, size: 25),
               title: const Text(
                 "Log Out",
                 style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.w400,
                   color: Colors.black,
-                  fontSize: 18,
                 ),
               ),
-              onTap: () {
-                // changeSelected(0);
-              },
+              onTap: () {},
             ),
             const Divider(
               thickness: 2,
               indent: 8,
               endIndent: 8,
-            )
+            ),
           ],
         ),
       ),
@@ -100,7 +113,7 @@ class _GuardMenuState extends State<GuardMenu> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>  const VisitorForm(),
+                      builder: (context) => AddEmployee(),
                     ),
                   );
                 },
@@ -117,7 +130,7 @@ class _GuardMenuState extends State<GuardMenu> {
                   height: 150,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage("assets/Visitor.png"),
+                      image: AssetImage("assets/Guard.png"),
                       fit: BoxFit
                           .contain, // Use BoxFit.contain or BoxFit.scaleDown
                     ),
@@ -126,7 +139,7 @@ class _GuardMenuState extends State<GuardMenu> {
               ),
               const SizedBox(height: 20),
               const Text(
-                "Visitors",
+                "Employee",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -217,14 +230,14 @@ class _GuardMenuState extends State<GuardMenu> {
                   height: 150,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage("assets/LogEntry.png"),
+                      image: AssetImage("assets/Report.png"),
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               const Text(
-                "LogEntry",
+                "Complaints",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,

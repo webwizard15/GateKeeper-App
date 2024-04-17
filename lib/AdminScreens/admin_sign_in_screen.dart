@@ -1,6 +1,7 @@
 import 'package:flutter/Material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart.';
+import 'package:gate_keeper_app/AdminScreens/admin_menu_screen.dart';
 
 class AdminSignInScreen extends StatefulWidget {
   const AdminSignInScreen({super.key});
@@ -86,7 +87,9 @@ class _SignInScreenState extends State<AdminSignInScreen> {
                     backgroundColor: Colors.grey,
                     radius: 28,
                     child: IconButton(
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> const AdminMenuScreen()));
+                      },
                       icon:Icon(Icons.arrow_right_alt,
                         size: 40,
                         color: Colors.black.withOpacity(0.8),
