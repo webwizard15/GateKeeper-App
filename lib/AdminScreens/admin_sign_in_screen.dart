@@ -1,7 +1,11 @@
-import 'package:flutter/Material.dart';
-import 'package:flutter/material.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart.';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/AdminScreens/admin_menu_screen.dart';
+import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminSignInScreen extends StatefulWidget {
   const AdminSignInScreen({super.key});
@@ -12,8 +16,76 @@ class AdminSignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<AdminSignInScreen> {
   final _aadharController = TextEditingController();
   final _phoneController = TextEditingController();
+
+  void login()async {
+    String aadharNumber = _aadharController.text.trim();
+    String email = "$aadharNumber@gmail.com";
+    String phoneNumber = _phoneController.text.trim();
+    if (email.isEmpty || phoneNumber.isEmpty) {
+      DialogBox.showDialogBox(context, "Please fill all the Details.");
+      return;
+    }
+    try {
+      EasyLoading.show();
+    UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
+          .signInWithEmailAndPassword(
+        email: email,
+        password: phoneNumber, // Use a dummy password or another authentication method
+      );
+    if(userCredential.user!.uid.isNotEmpty){
+    DocumentSnapshot  data =   await FirebaseFirestore.instance.collection("admins").doc(userCredential.user!.uid).get();
+    final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
+    Map? userData =  data.data() as Map<String,dynamic>;  //converting obj to Map
+    if(userData["type"] == 0){    // admin
+      _prefs.setString("userId", userData["id"]);    //Stored Id in shared Preference
+      _prefs.setInt("type", userData["type"]); //Stored type in shared Preference
+      Navigator.popUntil(context, (route) => false);
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const AdminMenuScreen()));
+ EasyLoading.dismiss();
+
+    }else{
+      DialogBox.showDialogBox(context, "Don't have admin access");
+      EasyLoading.dismiss();
+    }
+
+    }
+
+
+
+
+    } catch (e) {
+            if(e is FirebaseAuthException){
+              if(e.code == "user-not-found"){
+                DialogBox.showDialogBox(context, "User Not Found");
+                EasyLoading.dismiss();
+              } else{
+                DialogBox.showDialogBox(context, "Invalid Credentials");
+                EasyLoading.dismiss();
+                return;
+              }
+            } else{
+              DialogBox.showDialogBox(context,"An Unexpected error Occurred");
+              EasyLoading.dismiss();
+            }
+    }
+  }
+
+  @override
+  void initState() {
+    //   Q) Why am i calling a init state here?
+    // TODO: implement initState
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
+    SharedPreferences.getInstance().then((SharedPreferences value){   //below widget will only render once the id in share preference is null
+      String? id = value.getString("userId");
+      if(id != null && id != "" ){
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const AdminMenuScreen()));   //until and unless you are logged out login screen won't appear
+      }
+    });
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -88,7 +160,7 @@ class _SignInScreenState extends State<AdminSignInScreen> {
                     radius: 28,
                     child: IconButton(
                       onPressed: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> const AdminMenuScreen()));
+                        login();
                       },
                       icon:Icon(Icons.arrow_right_alt,
                         size: 40,

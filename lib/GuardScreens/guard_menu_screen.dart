@@ -230,7 +230,7 @@ class _GuardMenuState extends State<GuardMenu> {
                   fontSize: 20,
                 ),
               ),
-              const SizedBox(height: 40),
+
             ],
           )
         ],

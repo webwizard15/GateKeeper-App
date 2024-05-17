@@ -1,6 +1,14 @@
 
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gate_keeper_app/ResidentScreens/approvals_request_screens.dart';
+import 'package:gate_keeper_app/ResidentScreens/notice_list.dart';
+import 'package:gate_keeper_app/ResidentScreens/resident_sign_in_screen.dart';
+import 'package:gate_keeper_app/ResidentScreens/society_details.dart';
+import 'package:gate_keeper_app/screens/menu_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ResidentMenuScreen extends StatelessWidget{
   const ResidentMenuScreen({super.key});
@@ -82,7 +90,7 @@ class ResidentMenuScreen extends StatelessWidget{
                 ),
               ),
               onTap: (){
-
+             Navigator.push(context, MaterialPageRoute(builder: (context) => SocietyDetails(),),);
               },
             ),
             ListTile(
@@ -94,7 +102,13 @@ class ResidentMenuScreen extends StatelessWidget{
                   fontSize: 18,
                 ),
               ),
-              onTap: (){
+              onTap: ()async{
+
+                FirebaseAuth.instance.signOut();
+                (await SharedPreferences.getInstance()).clear();
+                Navigator.popUntil(context, (route) => false);
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> MenuScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ResidentSignInScreen()));
 
               },
             ),
@@ -113,7 +127,9 @@ class ResidentMenuScreen extends StatelessWidget{
           child: Column(
             children: [
              ElevatedButton(
-                 onPressed: (){},
+                 onPressed: (){
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => RequestApprovalScreen(),));
+                 },
                  style: ButtonStyle(
                    elevation: MaterialStateProperty.all(10),
                    shape: MaterialStateProperty.all(
@@ -143,7 +159,9 @@ class ResidentMenuScreen extends StatelessWidget{
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                 onPressed: (){},
+                 onPressed: (){
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => const NoticeList(),));
+                 },
                  style: ButtonStyle(
                    elevation: MaterialStateProperty.all(10),
                    shape: MaterialStateProperty.all(
@@ -173,7 +191,8 @@ class ResidentMenuScreen extends StatelessWidget{
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                 onPressed: (){},
+                 onPressed: (){
+                 },
                  style: ButtonStyle(
                    elevation: MaterialStateProperty.all(10),
                    shape: MaterialStateProperty.all(

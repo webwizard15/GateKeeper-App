@@ -4,15 +4,45 @@ import "package:gate_keeper_app/GuardScreens/guard_sign_in_screen.dart";
 
 import "package:gate_keeper_app/Guardscreens/guard_menu_screen.dart";
 import "package:gate_keeper_app/ResidentScreens/resident_menu_screen.dart";
+import "package:gate_keeper_app/ResidentScreens/resident_sign_in_screen.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
-class MenuScreen extends StatelessWidget {
+import "../AdminScreens/admin_menu_screen.dart";
+
+class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
+
+  @override
+  State<MenuScreen> createState() => _MenuScreenState();
+}
+
+class _MenuScreenState extends State<MenuScreen> {
   @override
   Widget build(BuildContext context) {
+    SharedPreferences.getInstance().then((SharedPreferences value){
+      String? id = value.getString("userId");
+      if(id != null && id != "" ){
+        switch(value.getInt("type")){
+          case 0: // admin
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const AdminMenuScreen()));
+            break;
+          case 1: // Res
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const ResidentMenuScreen()));
+            break;
+          case 2: // Guard
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => const GuardMenu()));
+            break;
+        }
+      }
+    });
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+          scrollDirection: Axis.vertical,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -57,7 +87,7 @@ class MenuScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ResidentMenuScreen(),
+                      builder: (context) => const ResidentSignInScreen(),
                     ),
                   );
                 },

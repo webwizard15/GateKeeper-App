@@ -1,5 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/AdminScreens/add_employee.dart';
+import 'package:gate_keeper_app/AdminScreens/admin_sign_in_screen.dart';
+import 'package:gate_keeper_app/AdminScreens/maid_list.dart';
+import 'package:gate_keeper_app/AdminScreens/notice_screen.dart';
+import 'package:gate_keeper_app/AdminScreens/registration.dart';
+import 'package:gate_keeper_app/AdminScreens/resident_approval.dart';
+import 'package:gate_keeper_app/Guardscreens/guard_menu_screen.dart';
+import 'package:gate_keeper_app/ResidentScreens/resident_menu_screen.dart';
+import 'package:gate_keeper_app/screens/menu_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminMenuScreen extends StatefulWidget {
   const AdminMenuScreen({super.key});
@@ -10,6 +20,12 @@ class AdminMenuScreen extends StatefulWidget {
 class _AdminMenuScreenState extends State<AdminMenuScreen> {
   @override
   Widget build(BuildContext context) {
+
+    // SharedPreferences.getInstance().then((SharedPreferences shared){
+    //   if(shared.getString("userId") == null || shared.getString("userId") == ''){
+    //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> MenuScreen())) ;
+    //   }
+    // });
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -49,7 +65,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                   Padding(
                     padding: EdgeInsets.only(top: 10),
                     child: Text(
-                      "Anmol Shukla", // Should not exceed ore than 18 words
+                      "Admin", // Should not exceed ore than 18 words
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
@@ -68,7 +84,9 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                   color: Colors.black,
                 ),
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const Notice(),));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.home_work_outlined, size: 25),
@@ -80,7 +98,9 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                   color: Colors.black,
                 ),
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(context,MaterialPageRoute(builder: (context) =>const SocietyRegistration(),));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.logout, size: 25),
@@ -92,7 +112,14 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                   color: Colors.black,
                 ),
               ),
-              onTap: () {},
+              onTap: () async{
+                SharedPreferences shared= await SharedPreferences.getInstance();
+                shared.clear();   //it will clear the id
+                FirebaseAuth.instance.signOut();
+                Navigator.popUntil(context, (route) => false); // it will clear the stack.
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> const MenuScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>const AdminSignInScreen(),));
+              },
             ),
             const Divider(
               thickness: 2,
@@ -102,151 +129,153 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
           ],
         ),
       ),
-      body: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Column(
-            children: [
-              const SizedBox(height: 100),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddEmployee(),
+      body: SingleChildScrollView(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Column(
+              children: [
+                const SizedBox(height: 100),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddEmployee(),
+                      ),
+                    );
+                  },
+                  style: ButtonStyle(
+                    elevation: MaterialStateProperty.all(10),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
                     ),
-                  );
-                },
-                style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(10),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  child: Container(
+                    width: 100,
+                    height: 150,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/Guard.png"),
+                        fit: BoxFit
+                            .contain, // Use BoxFit.contain or BoxFit.scaleDown
+                      ),
                     ),
                   ),
                 ),
-                child: Container(
-                  width: 100,
-                  height: 150,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage("assets/Guard.png"),
-                      fit: BoxFit
-                          .contain, // Use BoxFit.contain or BoxFit.scaleDown
+                const SizedBox(height: 20),
+                const Text(
+                  "Employee",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) =>const ResidentApprovalScreen(),));
+                  },
+                  style: ButtonStyle(
+                    elevation: MaterialStateProperty.all(10),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                    ),
+                  ),
+                  child: Container(
+                    width: 100,
+                    height: 150,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/Resident.png"),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Employee",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                const SizedBox(height: 20),
+                const Text(
+                  "Resident",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 60),
-              ElevatedButton(
-                onPressed: () {
-                  // Add your onPressed logic here
-                },
-                style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(10),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
+              ],
+            ),
+            const SizedBox(width: 20),
+            Column(
+              children: [
+                const SizedBox(height: 100),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(context,MaterialPageRoute(builder: (context) => const MaidListScreen(),));
+                  },
+                  style: ButtonStyle(
+                    elevation: MaterialStateProperty.all(10),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                    ),
+                  ),
+                  child: Container(
+                    width: 100,
+                    height: 150,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/Maid.png"),
+                      ),
                     ),
                   ),
                 ),
-                child: Container(
-                  width: 100,
-                  height: 150,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage("assets/Resident.png"),
+                const SizedBox(height: 20),
+                const Text(
+                  "Maid",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                ElevatedButton(
+                  onPressed: () {
+                    // Add your onPressed logic here
+                  },
+                  style: ButtonStyle(
+                    elevation: MaterialStateProperty.all(10),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                    ),
+                  ),
+                  child: Container(
+                    width: 100,
+                    height: 150,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/Report.png"),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Resident",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 20),
-          Column(
-            children: [
-              const SizedBox(height: 100),
-              ElevatedButton(
-                onPressed: () {
-                  // Add your onPressed logic here
-                },
-                style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(10),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Complaints",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
                   ),
                 ),
-                child: Container(
-                  width: 100,
-                  height: 150,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage("assets/Maid.png"),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Maid",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 60),
-              ElevatedButton(
-                onPressed: () {
-                  // Add your onPressed logic here
-                },
-                style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(10),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                  ),
-                ),
-                child: Container(
-                  width: 100,
-                  height: 150,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage("assets/Report.png"),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Complaints",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 40),
-            ],
-          )
-        ],
+        
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
