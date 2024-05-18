@@ -112,9 +112,9 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
                 children: [
                   TextButton(
                       onPressed: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => ResidentRegistration(),));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ResidentRegistration(),));
                       },
-                      child: Text("Registration ?",
+                      child: const Text("Registration ?",
                         style: TextStyle(
                         fontSize: 20,
                         color: Colors.black,

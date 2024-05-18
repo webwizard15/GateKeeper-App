@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/AdminScreens/employee_form_screen.dart';
+import 'package:gate_keeper_app/AdminScreens/guard_profile.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddEmployee extends StatefulWidget {
   const AddEmployee({super.key});
@@ -10,7 +12,18 @@ class AddEmployee extends StatefulWidget {
 }
 
 class _AddEmployeeState extends State<AddEmployee> {
-
+  String? societyUserId;
+ @override
+  void initState() {
+   initializeData();
+    super.initState();
+  }
+  void initializeData()async{
+   String? userId = (await SharedPreferences.getInstance()).getString("userId");
+   setState(() {
+     societyUserId = userId;
+   });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,39 +78,46 @@ class _AddEmployeeState extends State<AddEmployee> {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection("employee").orderBy("Status").snapshots(),
+              stream: FirebaseFirestore.instance.collection("Guards").where("SocietyId", isEqualTo:societyUserId).snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
                   if (snapshot.hasData && snapshot.data != null) {
-                    final employees = snapshot.data!.docs.toList();
+                    final guards = snapshot.data!.docs.toList();
                     return ListView.builder(
-                      itemCount: employees.length,
+                      itemCount: guards.length,
                       itemBuilder: (context, index) {
-                        var employee = employees[index];
+                        var guard = guards[index];
+                       String guardId = guards[index].id;
                         return Padding(
-                          padding: EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 10),
                           child: Material(
                             elevation:5,
                             child: ListTile(
-                              onTap: (){},
-                              title: Text(employee["name"], style: TextStyle(fontWeight: FontWeight.w500),),
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => GuardProfile(name: guard["name"], phoneNumber: guard["contactNumber"], address: guard["address"], profilePicture: guard["profilePic"], aadharNumber: guard["aadhar"], guardId: guardId),));
+                              },
+                              title: Text(guard["name"], style: const TextStyle(fontWeight: FontWeight.bold),),
                               leading: CircleAvatar(
-                                backgroundImage: NetworkImage(employee["profile picture"]),
+                                radius: 25,
+                                backgroundImage: NetworkImage(guard["profilePic"]),
                               ),
-                              subtitle: Text(employee["occupation"],),
-                              trailing: Container(
-                                  width: 45,
-                                  child: Text(employee["Status"], style: TextStyle(color: employee["Status"]=="Active"? Colors.green: Colors.red,), )),
+                              subtitle: Row(
+                                children: [
+                                  const Icon(Icons.phone, size: 15,),
+                                  const SizedBox(width: 5,),
+                                  Text(guard["contactNumber"],style: const TextStyle(fontSize: 15),),
+                                ],
+                              ),
                             ),
                           ),
                         );
                       },
                     );
                   } else {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                 } else {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
               },
             ),

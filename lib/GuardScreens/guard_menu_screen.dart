@@ -1,5 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/Material.dart';
+import 'package:gate_keeper_app/GuardScreens/guard_sign_in_screen.dart';
 import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../screens/menu_screen.dart';
 
 class GuardMenu extends StatefulWidget {
   const GuardMenu({super.key});
@@ -77,8 +82,13 @@ class _GuardMenuState extends State<GuardMenu> {
                   fontSize: 18,
                 ),
               ),
-              onTap: () {
-                // changeSelected(0);
+              onTap: () async{
+                SharedPreferences shared= await SharedPreferences.getInstance();
+                shared.clear();   //it will clear the id
+                FirebaseAuth.instance.signOut();
+                Navigator.popUntil(context, (route) => false); // it will clear the stack.
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> const MenuScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>const GuardSignInScreen(),));
               },
             ),
             const Divider(

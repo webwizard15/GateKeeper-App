@@ -1,11 +1,15 @@
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/Material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import '../Widgets/dialogue_box.dart';
 
 class EmployeeForm extends StatefulWidget {
   const EmployeeForm({super.key});
@@ -14,68 +18,67 @@ class EmployeeForm extends StatefulWidget {
 }
 
 class _EmployeeFormState extends State<EmployeeForm> {
-  final List<String> items1 = ["Active", "Inactive"];
-  final List<String> items2 = [
-    "Guard",
-    "Gardner",
-    "Maintenance",
-    "Cleaner",
-    "Others"
-  ];
-  String selectedValue2 = "Guard";
-  String selectedValue = "Active";
   final _nameController = TextEditingController();
+  final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   final _aadharController = TextEditingController();
-  File? profilepic;  // to save proile picture
+  File? profilePic;
 
-  void saveData() async {
+
+  void saveData()async{
     String name = _nameController.text.trim();
     String phone = _phoneController.text.trim();
+    String address = _addressController.text.trim();
     String aadhar = _aadharController.text.trim();
-    String status = selectedValue;
-    String occupation = selectedValue2;
-    _aadharController.clear();
-    _nameController.clear();
-    _phoneController.clear();
-    File? photo = profilepic;
-
-    if (name.isEmpty || phone.isEmpty || aadhar.isEmpty || photo==null) {
-      DialogBox.showDialogBox(context, "Please fill all the details");
-    } else {
-     UploadTask uploadTask = FirebaseStorage.instance.ref().child("profilePictures").child(Uuid().v1()).putFile(profilepic!);
-     TaskSnapshot taskSnapshot= await uploadTask;
-     String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-      await FirebaseFirestore.instance.collection("employee").add({
-        "name": name,
-        "contact number": phone,
-        "aadhar number": aadhar,
-        "Status": status,
-        "occupation": occupation,
-        "profile picture": downloadUrl,
-      });
-      DialogBox.showDialogBox(context, "Successfully Created");
+    String? userId = (await SharedPreferences.getInstance()).getString("userId");
+    if(name.isEmpty || phone.isEmpty || address.isEmpty || aadhar.isEmpty  || profilePic == null){
+      DialogBox.showDialogBox(context,"Please Fill all the Details");
+      return;
     }
-    setState(() {
-      profilepic =null;
-    });
-  }
+    try{
+      EasyLoading.show();
+      FirebaseAuth.instance.createUserWithEmailAndPassword(email: "$aadhar@gmail.com", password: phone);
+      UploadTask uploadTask = FirebaseStorage.instance.ref().child("VisitorProfilePicture").child(const Uuid().v1()).putFile(profilePic!);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      await FirebaseFirestore.instance.collection("Guards").doc().set({
+        "name" : name,
+        "contactNumber": phone,
+        "address": address,
+        "aadhar": aadhar,
+        "SocietyId": userId,
+        "profilePic": downloadUrl,
+        "type": 2,
+      });
+      setState(() {
+        _aadharController.clear();
+        _nameController.clear();
+        _phoneController.clear();
+        profilePic = null;
+        _addressController.clear();
+      });
+      EasyLoading.dismiss();
+      DialogBox.showDialogBox(context,"Successfully Added");
 
+    } catch(e){
+        EasyLoading.dismiss();
+      DialogBox.showDialogBox(context, "Failed to upload data");
+    }
+
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 3)),
-            ],
-          ),
+          decoration: BoxDecoration(boxShadow: [
+            BoxShadow(
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+                color: Colors.grey.withOpacity(0.5))
+          ]),
           child: AppBar(
             elevation: 0,
           ),
@@ -83,34 +86,104 @@ class _EmployeeFormState extends State<EmployeeForm> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 40, 10, 0),
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
           child: Column(
             children: [
-              GestureDetector(
-                onTap: () async {
-                  XFile? selectedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
-                  if (selectedImage != null) {
-                    File convertedFile = File(selectedImage.path);
-                    setState(() {
-                      profilepic = convertedFile;
-                    });
-                  } else {
-                        DialogBox.showDialogBox(context, "No Image is Selected");
-                  }
-                },
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: profilepic!= null? FileImage(profilepic!) : null,
-                ),
+              Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black, width: 0.5),
+                    ),
+                    child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage:(profilePic!= null)? FileImage(profilePic!): const AssetImage("assets/Guard.png") as ImageProvider
+                    ),
+                  ),
+                  Positioned(
+                    left: 72,
+                    top: 72,
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                            context: context,
+                            builder: (context) => Container(
+                              height: 100,
+                              margin:const  EdgeInsets.only(
+                                  top:20,
+                                  bottom: 20
+                              ),
+                              child: ListView(
+                                children: [
+                                  ListTile(
+                                    onTap: ()async{
+                                      XFile? selectedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+                                      if(selectedImage!=null){
+                                        File convertedFile = File(selectedImage.path);
+                                        setState(() {
+                                          profilePic = convertedFile;
+                                        });
+                                        Navigator.pop(context);
+                                      } else{
+                                        Navigator.pop(context);
+                                        return ;
+                                      }
+                                    },
+                                    leading: const Icon(Icons.photo_library_outlined),
+                                    title:const  Text("Gallery"),
+                                  ),
+                                  ListTile(
+                                    title: const Text("Camera"),
+                                    leading: const Icon(Icons.camera_alt_outlined),
+                                    onTap: ()async{
+                                      XFile? selectedImage = await ImagePicker().pickImage(source: ImageSource.camera);
+                                      if(selectedImage!=null){
+                                        File convertedFile = File(selectedImage.path);
+                                        setState(() {
+                                          profilePic = convertedFile;
+                                        });
+                                        Navigator.pop(context);
+                                      } else{
+                                        Navigator.pop(context);
+                                        return;
+                                      }
+                                    },
+                                  )
+
+                                ],
+                              ),
+                            )
+                        );
+                      },
+                      child: Container(
+                        height: 28,
+                        width: 28,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
+                keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                   labelText: "Name",
-                  border: OutlineInputBorder(
+                  prefixIcon: const Icon(Icons.people),
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                     borderSide: const BorderSide(
+                      width: 2,
                       color: Colors.deepPurple,
                     ),
                   ),
@@ -118,101 +191,61 @@ class _EmployeeFormState extends State<EmployeeForm> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                inputFormatters: [LengthLimitingTextInputFormatter(10)],
-                keyboardType: TextInputType.phone,
                 controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [LengthLimitingTextInputFormatter(10)],
                 decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.phone),
                   labelText: "Contact Number",
-                  border: OutlineInputBorder(
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                     borderSide: const BorderSide(
                       color: Colors.deepPurple,
+                      width: 2,
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               TextFormField(
-                keyboardType: TextInputType.number,
+                controller: _addressController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.work),
+                  labelText: "Address",
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(
+                      color: Colors.deepPurple,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
                 controller: _aadharController,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.credit_card_rounded),
                   labelText: "Aadhar Number",
-                  border: OutlineInputBorder(
+                  focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                     borderSide: const BorderSide(
                       color: Colors.deepPurple,
+                      width: 2,
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: "Police Verification Document",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(
-                      color: Colors.deepPurple,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  DropdownButton(
-                      underline: Container(
-                        height: 1,
-                        color: Colors.grey,
-                      ),
-                      value: selectedValue,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedValue = newValue!;
-                        });
-                      },
-                      items: items1
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text(e,
-                                  style: e == "Active"
-                                      ? const TextStyle(color: Colors.green)
-                                      : const TextStyle(color: Colors.red)),
-                            ),
-                          )
-                          .toList()),
-                  DropdownButton(
-                      underline: Container(
-                        height: 1,
-                        color: Colors.grey,
-                      ),
-                      menuMaxHeight: 150,
-                      value: selectedValue2,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedValue2 = newValue!;
-                        });
-                      },
-                      items: items2
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text(e),
-                            ),
-                          )
-                          .toList())
-                ],
-              ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 30,),
               ElevatedButton(
-                style: ButtonStyle(elevation: MaterialStateProperty.all(8)),
-                onPressed: () {
-                  saveData();
-                },
-                child: const Text("Submit"),
-              )
+                  onPressed: (){
+                    saveData();
+                  },
+                  child: const Text("Submit"))
             ],
           ),
         ),

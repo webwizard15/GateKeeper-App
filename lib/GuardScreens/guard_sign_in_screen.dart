@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/Material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart.';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/GuardScreens/guard_menu_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Widgets/dialogue_box.dart';
 
 class GuardSignInScreen extends StatefulWidget {
   const GuardSignInScreen({super.key});
@@ -12,6 +17,59 @@ class GuardSignInScreen extends StatefulWidget {
 class _GuardSignInScreenState extends State<GuardSignInScreen> {
   final _aadharController = TextEditingController();
   final _phoneController = TextEditingController();
+   void login()async{
+     String aadharNumber = _aadharController.text.trim();
+     String email = "$aadharNumber@gmail.com";
+     String phoneNumber = _phoneController.text.trim();
+     if (email.isEmpty || phoneNumber.isEmpty) {
+       DialogBox.showDialogBox(context, "Please fill all the Details.");
+       return;
+     }
+     try {
+       EasyLoading.show();
+       UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
+           .signInWithEmailAndPassword(
+         email: email,
+         password: phoneNumber, // Use a dummy password or another authentication method
+       );
+       if(userCredential.user!.email != null){
+         QuerySnapshot  data =   await FirebaseFirestore.instance.collection("Guards").where("aadhar",isEqualTo: userCredential.user!.email!.replaceAll("@gmail.com", '')).get();
+         final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
+         Map? userData =  data.docs[0].data() as Map<String,dynamic>;  //converting obj to Map
+         if(userData["type"] == 2){    // admin
+           _prefs.setString("userId", data.docs[0].id);    //Stored Id in shared Preference
+           _prefs.setInt("type", userData["type"]);
+           _prefs.setString("society", userData["SocietyId"]);
+           //Stored type in shared Preference
+           Navigator.popUntil(context, (route) => false);
+           Navigator.push(context,
+               MaterialPageRoute(builder: (context) => const GuardMenu()));
+        EasyLoading.dismiss();
+         }else{
+           DialogBox.showDialogBox(context, "Don't have Guard access");
+           EasyLoading.dismiss();
+         }
+
+
+       }
+
+     } catch (e) {
+       if(e is FirebaseAuthException){
+         if(e.code == "user-not-found"){
+           DialogBox.showDialogBox(context, "User Not Found");
+           EasyLoading.dismiss();
+         } else{
+           DialogBox.showDialogBox(context, "Invalid Credentials");
+           EasyLoading.dismiss();
+           return;
+         }
+       } else{
+         DialogBox.showDialogBox(context,"An Error Occurred: $e");
+         EasyLoading.dismiss();
+       }
+     }
+   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,12 +144,7 @@ class _GuardSignInScreenState extends State<GuardSignInScreen> {
                     radius: 28,
                     child: IconButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const GuardMenu(),
-                          ),
-                        );
+                        login();
                       },
                       icon: Icon(
                         Icons.arrow_right_alt,
