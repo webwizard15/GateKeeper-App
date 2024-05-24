@@ -90,6 +90,7 @@ class _GuardMenuState extends State<GuardMenu> {
                Navigator.push(context, MaterialPageRoute(builder: (context) => const ResidentMaidsLogs(),));
               },
             ),
+
             ListTile(
               leading: const Icon(
                 Icons.logout,
