@@ -55,7 +55,8 @@ class _NoticeListState extends State<NoticeList>{
         ),
       body: Padding(
         padding: const EdgeInsets.only(top: 10),
-        child: StreamBuilder(
+        child: societyUserId ==null || towerId==null || flat ==null ? const Center(child: CircularProgressIndicator()):
+        StreamBuilder(
           stream: FirebaseFirestore.instance.collection("notices").where("society", isEqualTo: societyUserId).where("tower.id", isEqualTo: towerId).where("flat", isEqualTo: flat).snapshots(),
           builder: (context, snapshot) {
             if(snapshot.connectionState ==ConnectionState.waiting){
