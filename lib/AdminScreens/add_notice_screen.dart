@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddNotice extends StatefulWidget {
-  const AddNotice({Key? key}) : super(key: key);
+  const AddNotice({super.key});
 
   @override
   State<AddNotice> createState() => _AddNoticeState();
@@ -181,7 +180,7 @@ class _AddNoticeState extends State<AddNotice> {
                       _flats = newValue;
                     },
                     items: flatList
-                        .map((e) => DropdownMenuItem(child: Text(e), value: e))
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                   ),
                 ],

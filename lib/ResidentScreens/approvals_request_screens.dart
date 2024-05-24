@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/Material.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart.';
-import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RequestApprovalScreen extends StatefulWidget {
   const RequestApprovalScreen({super.key});
@@ -11,126 +10,193 @@ class RequestApprovalScreen extends StatefulWidget {
 }
 
 class _RequestApprovalState extends State<RequestApprovalScreen> {
+  String? residentTowerId;
+  String? residentFlatNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeData();
+  }
+
+  Future<void> initializeData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? residentUserId = prefs.getString("userId");
+
+    if (residentUserId != null) {
+      final DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection("resident")
+          .doc(residentUserId)
+          .get();
+      setState(() {
+        residentTowerId = documentSnapshot.get("tower");
+        residentFlatNumber = documentSnapshot.get("flat");
+      });
+    }
+  }
+
+  Future<void> updateVisitorStatus(String id, String status) async {
+    await FirebaseFirestore.instance.collection("Visitors").doc(id).update({
+        "status": status
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  blurRadius: 7,
-                  spreadRadius: 5,
-                  offset: Offset(0, 3),
-                )
-              ],
-            ),
-            child: AppBar(
-              centerTitle: true,
-              title: Text(
-                "Approvals",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                blurRadius: 7,
+                spreadRadius: 5,
+                offset: const Offset(0, 3),
+              )
+            ],
+          ),
+          child: AppBar(
+            centerTitle: true,
+            title: const Text(
+              "Approvals",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
           ),
         ),
-        body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection("visitors").snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.active) {
-              if (snapshot.hasData) {
-                final visitors = snapshot.data!.docs.reversed.toList();
-                return ListView.builder(
-                  itemCount: visitors.length,
-                  itemBuilder: (context, index) {
-                    var visitor = visitors[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Material(
-                        elevation: 5,
-                        child: Column(
-                          children: [
-                            ListTile(
-                              leading: CircleAvatar(
-                                radius: 25,
-                                backgroundImage:
-                                    NetworkImage(visitor["profilepic"]),
-                              ),
-                              title: Text(
-                                visitor["name"],
-                                style: TextStyle(fontWeight: FontWeight.w500,  fontSize:18),
-                              ),
-                              subtitle: Text(visitor["purpose"], style: TextStyle(fontSize: 15),),
-                              trailing: IconButton(
-                                onPressed: (){},
-                                icon: Icon(Icons.phone),
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(left:30, right: 30),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style: ButtonStyle(
-                                        shape:MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),),
-                                        backgroundColor: MaterialStateProperty.all(Colors.green),
-                                      ),
-                                      onPressed: () {
-
-                                      },
-                                      child: Text(
-                                        "APPROVE",
-                                        style: TextStyle(color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                        ),
-                                      ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: residentTowerId == null || residentFlatNumber == null
+            ? const Center(child: CircularProgressIndicator())
+            : StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("Visitors")
+                    .where("tower", isEqualTo: residentTowerId)
+                    .where("flatNumber", isEqualTo: residentFlatNumber)
+                    .where("status",isEqualTo: "Pending")
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Center(child: Text("No Pending Requests..", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),)));
+                  } else {
+                    final visitors = snapshot.data!.docs.reversed.toList();
+                    return ListView.builder(
+                      itemCount: visitors.length,
+                      itemBuilder: (context, index) {
+                        final visitor = visitors[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Material(
+                            elevation: 5,
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    radius: 25,
+                                    backgroundImage:
+                                        NetworkImage(visitor["profilePic"]),
+                                  ),
+                                  title: Text(
+                                    visitor["name"],
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
                                     ),
                                   ),
-                                  const SizedBox(width: 20),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      style:ButtonStyle(
-                                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),),
-                                          backgroundColor: MaterialStateProperty.all(Colors.red)
-                                      ),
-                                      onPressed: () {},
-
-                                      child: Text(
-                                        "DENY",
-                                        style: TextStyle(color: Colors.white,
-
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15
+                                  subtitle: Text(
+                                    visitor["purpose"],
+                                    maxLines: 1,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.deepOrange,
+                                    ),
+                                  ),
+                                  trailing: IconButton(
+                                    onPressed: () {
+                                      final Uri visitorNumber = Uri.parse(
+                                          "tel:${visitor["contactNumber"]}");
+                                      launchUrl(visitorNumber);
+                                    },
+                                    icon: const Icon(Icons.phone, size: 20),
+                                  ),
+                                ),
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 30),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () {
+                                            updateVisitorStatus(
+                                                visitor.id, "Approved");
+                                          },
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.green),
+                                            shape: MaterialStateProperty.all(
+                                              RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "Approve",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
+                                      const SizedBox(width: 20),
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () {
+                                            updateVisitorStatus(
+                                                visitor.id, "Denied");
+                                          },
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.red),
+                                            shape: MaterialStateProperty.all(
+                                              RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "Deny",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
-                  },
-                );
-              } else {
-                return Text("NO data Now");
-              }
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ));
+                  }
+                },
+              ),
+      ),
+    );
   }
 }

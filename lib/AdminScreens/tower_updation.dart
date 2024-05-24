@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:gate_keeper_app/AdminScreens/towers_configuration.dart';
 import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,17 +21,19 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
     String towerName = _towerNameController.text.trim();
     int numberOfFloors;
     int maxUnitPerFloor;
-
+    EasyLoading.show();
     try {
       numberOfFloors = int.parse(_floorNumberController.text.trim());
       maxUnitPerFloor = int.parse(_maxUnitPerFloorController.text.trim());
     } catch (e) {
       // Handle the exception (e.g., show an error message)
+      EasyLoading.dismiss();
       DialogBox.showDialogBox(
           context, "Please enter valid numbers for floors and units per floor");
       return;
     }
     if (towerName.isEmpty || numberOfFloors <= 0 || maxUnitPerFloor <= 0) {
+      EasyLoading.dismiss();
       DialogBox.showDialogBox(context,
           "Please provide all the details and floors and units per floor should be greater than 0");
       return;
@@ -40,6 +44,7 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
         .doc(userId + widget.towerNumber.toString())
         .get();
     if (exisitingTower.exists) {
+      EasyLoading.dismiss();
       DialogBox.showDialogBox(context, "Tower with this name already exist");
       return;
     } else {
@@ -48,6 +53,7 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
           .doc(userId + widget.towerNumber.toString())
           .set({
         "TowerName": towerName,
+        "societyId" :userId,
       });
       switch (convention) {
         case 1:
@@ -65,7 +71,6 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
               });
             }
           }
-
           break;
         case 2:
           for (int floor = 1; floor <= numberOfFloors; floor++) {
@@ -91,6 +96,8 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
 
         default:
       }
+      EasyLoading.dismiss();
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TowersConfigurationScreen(),));
     }
   }
 

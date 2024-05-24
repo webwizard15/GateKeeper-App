@@ -1,6 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/Material.dart';
 import 'package:gate_keeper_app/GuardScreens/guard_sign_in_screen.dart';
+import 'package:gate_keeper_app/GuardScreens/log_entry.dart';
+import 'package:gate_keeper_app/GuardScreens/maid_entry_list.dart';
+import 'package:gate_keeper_app/GuardScreens/resident_maid_logs.dart';
+import 'package:gate_keeper_app/GuardScreens/resident_towers.dart';
 import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,7 +50,7 @@ class _GuardMenuState extends State<GuardMenu> {
         ),
       ),
       drawer: Drawer(
-        width: 200,
+        width: 250,
         child: ListView(
           children: [
             const DrawerHeader(
@@ -71,15 +75,32 @@ class _GuardMenuState extends State<GuardMenu> {
             ),
             ListTile(
               leading: const Icon(
+                Icons.house,
+                size: 20,
+              ),
+              title: const Text(
+                "Maids/Residents",
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                  fontSize: 15,
+                ),
+              ),
+              onTap: () {
+               Navigator.push(context, MaterialPageRoute(builder: (context) => const ResidentMaidsLogs(),));
+              },
+            ),
+            ListTile(
+              leading: const Icon(
                 Icons.logout,
-                size: 25,
+                size: 20,
               ),
               title: const Text(
                 "Log Out",
                 style: TextStyle(
                   fontWeight: FontWeight.w400,
                   color: Colors.black,
-                  fontSize: 18,
+                  fontSize: 15,
                 ),
               ),
               onTap: () async{
@@ -145,7 +166,7 @@ class _GuardMenuState extends State<GuardMenu> {
               const SizedBox(height: 60),
               ElevatedButton(
                 onPressed: () {
-                  // Add your onPressed logic here
+                 Navigator.push(context, MaterialPageRoute(builder: (context) => const ResidentTower(),));
                 },
                 style: ButtonStyle(
                   elevation: MaterialStateProperty.all(10),
@@ -181,7 +202,7 @@ class _GuardMenuState extends State<GuardMenu> {
               const SizedBox(height: 100),
               ElevatedButton(
                 onPressed: () {
-                  // Add your onPressed logic here
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const MaidEntryList(),));
                 },
                 style: ButtonStyle(
                   elevation: MaterialStateProperty.all(10),
@@ -212,7 +233,7 @@ class _GuardMenuState extends State<GuardMenu> {
               const SizedBox(height: 60),
               ElevatedButton(
                 onPressed: () {
-                  // Add your onPressed logic here
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const LogEntryList(),));
                 },
                 style: ButtonStyle(
                   elevation: MaterialStateProperty.all(10),

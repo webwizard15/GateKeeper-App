@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/Material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../Widgets/dialogue_box.dart';
 
@@ -21,69 +23,79 @@ class _VisitorFormState extends State<VisitorForm> {
   var _towers;
   var _flats;
   File? profilePic;
-  List towersList = [
-    "Tower 1",
-    "Tower 2",
-    "Tower 3",
-    "Tower 4",
-    "Tower 5",
-    "Tower 6",
-  ];
-  List flatsList = [
-    "FLat 101",
-    "FLat 102 ",
-    "FLat 103",
-    "FLat 104",
-    "FLat 105",
-    "FLat 106",
-    "FLat 107",
-    "FLat 108"
-  ];
-  void saveData() async {
+  List towersList =[];
+  List flatList =[];
+
+  void saveData()async{
     String name = _nameController.text.trim();
     String phone = _phoneController.text.trim();
     String purpose = _purposeController.text.trim();
-    var towers = _towers;
-    var flats = _flats;
-
-
-    if (name.isEmpty ||
-        phone.isEmpty ||
-        purpose.isEmpty ||
-        towers == null ||
-        flats == null ||
-        profilePic ==null
-    ) {
-      DialogBox.showDialogBox(context, "Please Fill all the Details");
+    var tower = _towers;
+    var flat = _flats;
+    String? userId = (await SharedPreferences.getInstance()).getString("society");
+    if(name.isEmpty || phone.isEmpty || tower ==null || flat == null || profilePic == null){
+      DialogBox.showDialogBox(context,"Please Fill all the Details");
+      return;
     }
-    else {
-     UploadTask uploadTask= FirebaseStorage.instance.ref().child("VisitorProfilePicture").child( Uuid().v1()).putFile(profilePic!);
-      StreamSubscription taskSubscription = uploadTask.snapshotEvents.listen((snapshot) {
-       double percentage = snapshot.bytesTransferred/ snapshot.totalBytes *100;
-     });
-
-
-     TaskSnapshot taskSnapshot= await uploadTask;  // we get the task snapshot once uploading is finished.
-     String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-     taskSubscription.cancel();
-
-      await FirebaseFirestore.instance.collection("visitors").add({
-        "name": name,
-        "contact Number": phone,
-        "purpose": purpose,
-        "flats": flats,
-        "towers": towers,
-        "profilepic": downloadUrl,
+    try{
+      EasyLoading.show();
+      UploadTask uploadTask = FirebaseStorage.instance.ref().child("VisitorProfilePicture").child(const Uuid().v1()).putFile(profilePic!);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      await FirebaseFirestore.instance.collection("Visitors").doc().set({
+        "name" : name,
+        "contactNumber": phone,
+        "purpose":purpose,
+        "SocietyId": userId,
+        "flatNumber" :flat,
+        "towerId" : tower["id"],
+        "towerName": tower["name"],
+        "profilePic": downloadUrl,
+        "status" : "Pending"
       });
       setState(() {
-        profilePic=null;
+        _nameController.clear();
+        _phoneController.clear();
+        _purposeController.clear();
+        profilePic = null;
+        _towers= null;
+        _flats = null;
       });
-      DialogBox.showDialogBox(context, "Successfully Sent");
+      EasyLoading.dismiss();
+      DialogBox.showDialogBox(context,"Request Sent");
+
+    } catch(e){
+      DialogBox.showDialogBox(context, "Failed to upload data");
+      EasyLoading.dismiss();
     }
-    _nameController.clear();
-    _phoneController.clear();
-    _purposeController.clear();
+
   }
+
+  @override
+  void initState(){
+    _initializeData();
+    super.initState();
+  }
+  void _initializeData()async{
+    String? userId= (await SharedPreferences.getInstance()).getString("society");
+    DocumentSnapshot document= await FirebaseFirestore.instance.collection("Society").doc(userId).get();
+    int totalTower = int.parse(document.get("SocietyTowers"));
+    List fetchedTowerList = [];
+    for(int index=1; index <= totalTower; index++){
+      DocumentSnapshot towerDocument = await FirebaseFirestore.instance.collection("Towers").doc(userId! + (index).toString()).get();
+      if(towerDocument.exists){
+        String towerName = towerDocument.get("TowerName");
+        fetchedTowerList.add({
+          "name" : towerName,
+          "id" : userId + (index).toString(),
+        });
+      }
+    }
+    setState(() {
+      towersList = fetchedTowerList;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -125,13 +137,15 @@ class _VisitorFormState extends State<VisitorForm> {
                     ),
                   ),
                   Positioned(
+                      top: 72,
+                      left: 72,
                       child: GestureDetector(
                         onTap: () {
                           showModalBottomSheet(
                               context: context,
                               builder: (context) => Container(
                                 height: 100,
-                                margin: EdgeInsets.only(
+                                margin:const EdgeInsets.only(
                                   top: 20,
                                   bottom: 20
                                 ),
@@ -148,11 +162,11 @@ class _VisitorFormState extends State<VisitorForm> {
                                          Navigator.pop(context);
                                        } else {
                                          Navigator.pop(context);
-                                         return null;
+                                         return;
                                        }
                                       },
-                                      leading: Icon(Icons.photo_library_outlined),
-                                      title: Text("Gallery"),
+                                      leading: const Icon(Icons.photo_library_outlined),
+                                      title: const Text("Gallery"),
                                     ),
                                     ListTile(
                                       onTap: ()async{
@@ -165,11 +179,11 @@ class _VisitorFormState extends State<VisitorForm> {
                                          Navigator.pop(context);
                                        } else{
                                          Navigator.pop(context);
-                                         return null;
+                                         return;
                                        }
                                       },
-                                      leading: Icon(Icons.photo_camera_outlined),
-                                      title: Text("Camera"),
+                                      leading: const Icon(Icons.photo_camera_outlined),
+                                      title: const Text("Camera"),
                                     ),
                                   ],
                                 ),
@@ -182,15 +196,13 @@ class _VisitorFormState extends State<VisitorForm> {
                           decoration: BoxDecoration(
                               color: Colors.blue,
                               borderRadius: BorderRadius.circular(50)),
-                          child: Icon(
+                          child: const Icon(
                             Icons.camera_alt_outlined,
                             color: Colors.white,
                             size: 20,
                           ),
                         ),
-                      ),
-                      top: 72,
-                      left: 72)
+                      ))
                 ],
               ),
               const SizedBox(height: 20),
@@ -229,49 +241,56 @@ class _VisitorFormState extends State<VisitorForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   DropdownButton(
-                    underline: Container(
-                      height: 1,
-                      color: Colors.grey,
-                    ),
                     menuMaxHeight: 200,
+                    underline: Container(
+                        height: 2, color: Colors.grey.withOpacity(0.5)),
                     hint: const Text("Towers"),
-                    value: _towers, // default selected item is null
-                    onChanged: (newValue) {
+                    value: _towers,
+                    onChanged: (newValue) async {
+                      EasyLoading.show();
+                      QuerySnapshot querySnapshot = await FirebaseFirestore
+                          .instance
+                          .collection("Towers")
+                          .doc((newValue as Map)["id"])
+                          .collection("Flats")
+                          .get();
+                      flatList = [];
+                      for (int i = 0; i < querySnapshot.docs.length; i++) {
+                        QueryDocumentSnapshot doc = querySnapshot.docs[i];
+                        flatList.add((doc.data() as Map)['flatNumber']);
+                      }
+
                       setState(() {
-                        _towers =
-                            newValue; //selected item is passed into a variable and rebuilt the Widget
+                        _towers = newValue;
+                        // flatList = flatNumbers;
+                        // _flats = newValue;
                       });
+                      EasyLoading.dismiss();
                     },
                     items: towersList
-                        .map((e) => DropdownMenuItem(
-                              value: e,
-                              child: Text(e),
-                            ))
+                        .map((e) =>
+                        DropdownMenuItem(value: e, child: Text(e["name"])))
                         .toList(),
                   ),
+                  const SizedBox(
+                    width: 20,
+                  ),
                   DropdownButton(
-                    underline: Container(
-                      height: 1,
-                      color: Colors.grey,
-                    ),
                     menuMaxHeight: 200,
+                    underline: Container(
+                        height: 2, color: Colors.grey.withOpacity(0.5)),
                     hint: const Text("Flats"),
                     value: _flats,
-                    onChanged: (newValue) {
+                    onChanged: (newValue) async {
                       setState(() {
                         _flats = newValue;
                       });
+
                     },
-                    items: flatsList
-                        .map((e) => DropdownMenuItem(
-                              value: e,
-                              child: Text(e),
-                            ))
+                    items: flatList
+                        .map((e) => DropdownMenuItem(value: e, child:Text(e)))
                         .toList(),
-                  )
-                  // DropdownButton(
-                  //
-                  // ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),

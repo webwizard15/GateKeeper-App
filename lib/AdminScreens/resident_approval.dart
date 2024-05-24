@@ -77,7 +77,7 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
             );
           } else if (snapshot.hasError) {
             return Expanded(
-              child: Container(
+              child: SizedBox(
                   height: MediaQuery.sizeOf(context).height,
                   width: MediaQuery.sizeOf(context).width,
                   child: Center(child: Text('Error: ${snapshot.error}'))),
@@ -86,7 +86,7 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
             final totalResidents = snapshot.data!.docs.toList();
             if(totalResidents.every((element) =>element["isAccepted"] == true ) && myIndex == 0){  // all residents are accepted and my index 0 is selected fir no pending request show karwao
              return Expanded(
-               child: Container(
+               child: SizedBox(
                    height: MediaQuery.sizeOf(context).height,
                    width: MediaQuery.sizeOf(context).width,
                    child: const Center(child: Text("No Pending Requests..", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),))),

@@ -54,7 +54,7 @@ class _MaidListScreenState extends State<MaidListScreen> {
         ),
       ),
       body: Padding(
-        padding: EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.only(top: 10),
         child: StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection("Maids")

@@ -141,7 +141,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddEmployee(),
+                        builder: (context) =>const AddEmployee(),
                       ),
                     );
                   },
