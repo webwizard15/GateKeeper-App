@@ -76,7 +76,7 @@ class _RequestApprovalState extends State<RequestApprovalScreen> {
             : StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection("Visitors")
-                    .where("tower", isEqualTo: residentTowerId)
+                    .where("towerId", isEqualTo: residentTowerId)
                     .where("flatNumber", isEqualTo: residentFlatNumber)
                     .where("status",isEqualTo: "Pending")
                     .snapshots(),

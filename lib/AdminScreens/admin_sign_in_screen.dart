@@ -21,7 +21,7 @@ class _SignInScreenState extends State<AdminSignInScreen> {
     String aadharNumber = _aadharController.text.trim();
     String email = "$aadharNumber@gmail.com";
     String phoneNumber = _phoneController.text.trim();
-    if (email.isEmpty || phoneNumber.isEmpty) {
+    if (aadharNumber.isEmpty || phoneNumber.isEmpty) {
       DialogBox.showDialogBox(context, "Please fill all the Details.");
       return;
     }

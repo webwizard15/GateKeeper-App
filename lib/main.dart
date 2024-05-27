@@ -17,9 +17,14 @@ import 'package:gate_keeper_app/GuardScreens/guard_sign_in_screen.dart';
 import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
 import 'AdminScreens/registration.dart';
 import 'Widgets/loader.dart';
-
+import 'package:zego_express_engine/zego_express_engine.dart';
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
+  // await ZegoExpressEngine.createEngineWithProfile(ZegoEngineProfile(
+  //   1249166214,
+  //   ZegoScenario.StandardVoiceCall,
+  //   appSign: '1cbb00886334c928a77bc4903cf93a69ff557f89f44071cf4ddff2dbc47ed66d',
+  // ));
   SystemChrome.setPreferredOrientations([  //setting whole app to potrait mode
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -27,7 +32,6 @@ void main()async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform
   );
-
   runApp(
      MaterialApp(
       debugShowCheckedModeBanner: false,
