@@ -2,6 +2,7 @@ import "package:cloud_firestore/cloud_firestore.dart";
 import "package:flutter/Material.dart";
 import "package:flutter/material.dart";
 import "package:flutter/material.dart.";
+import "package:gate_keeper_app/GuardScreens/voiceCalling.dart";
 import "package:shared_preferences/shared_preferences.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -78,6 +79,7 @@ class _LogEntryListState extends State<LogEntryList> {
                   String statusValue = snapshot.data?.docs[index]["status"];
                   String towerName = snapshot.data?.docs[index]["towerName"];
                   String flatNumber = snapshot.data?.docs[index]["flatNumber"];
+                  String towerId = snapshot.data?.docs[index]["towerId"];
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
@@ -141,13 +143,14 @@ class _LogEntryListState extends State<LogEntryList> {
                                       GestureDetector(
                                         onTap: () async {
                                           QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-                                              .collection("residents")
-                                              .where("towerName", isEqualTo: towerName)
+                                              .collection("resident")
+                                              .where("tower", isEqualTo: towerId)
                                               .where("flat", isEqualTo: flatNumber)
                                               .get();
                                           String contactNumber = querySnapshot.docs[0]["contactNumber"];
-                                          Uri phoneNumber = Uri.parse("tel:$contactNumber");
-                                          await launchUrl(phoneNumber);
+                                          // Uri phoneNumber = Uri.parse("tel:$contactNumber");
+                                          // await launchUrl(phoneNumber);
+                                          Navigator.push(context, MaterialPageRoute(builder: (context)=> CallPage(callID: querySnapshot.docs[0].id, userId: querySnapshot.docs[0].id, userName: querySnapshot.docs[0]["name"])));
                                         },
                                         child: const Icon(Icons.phone, size: 18),
                                       ),
