@@ -8,7 +8,7 @@ class AddEmployee extends StatefulWidget {
   const AddEmployee({super.key});
 
   @override
-  _AddEmployeeState createState() => _AddEmployeeState();
+  State<AddEmployee> createState() => _AddEmployeeState();
 }
 
 class _AddEmployeeState extends State<AddEmployee> {

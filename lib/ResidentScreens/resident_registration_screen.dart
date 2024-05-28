@@ -164,13 +164,15 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                       ),
                     ),
                     Positioned(
+                      top: 72,
+                      left: 72,
                       child: GestureDetector(
                         onTap: () {
                           showModalBottomSheet(
                             context: context,
                             builder: (context) => Container(
                               height: 100,
-                              margin: EdgeInsets.only(
+                              margin: const EdgeInsets.only(
                                   top: 20,
                                   bottom: 20
                               ),
@@ -187,11 +189,11 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                                         Navigator.pop(context);
                                       } else {
                                         Navigator.pop(context);
-                                        return null;
+                                        return;
                                       }
                                     },
-                                    leading: Icon(Icons.photo_library_outlined),
-                                    title: Text("Gallery"),
+                                    leading: const Icon(Icons.photo_library_outlined),
+                                    title: const Text("Gallery"),
                                   ),
                                   ListTile(
                                     onTap: ()async{
@@ -204,11 +206,11 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                                         Navigator.pop(context);
                                       } else{
                                         Navigator.pop(context);
-                                        return null;
+                                        return;
                                       }
                                     },
-                                    leading: Icon(Icons.photo_camera_outlined),
-                                    title: Text("Camera"),
+                                    leading: const Icon(Icons.photo_camera_outlined),
+                                    title:const  Text("Camera"),
                                   ),
                                 ],
                               ),
@@ -218,17 +220,15 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                         child: Container(
                           height: 28,
                           width: 28,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                               shape: BoxShape.circle, color: Colors.blue),
-                          child: Icon(
+                          child: const Icon(
                             Icons.camera_alt_outlined,
                             size: 20,
                             color: Colors.white,
                           ),
                         ),
                       ),
-                      top: 72,
-                      left: 72,
                     ),
                   ],
                 ),
@@ -238,10 +238,10 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     labelText: "Name",
-                    prefixIcon: Icon(Icons.people),
+                    prefixIcon: const Icon(Icons.people),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         width: 2,
                         color: Colors.deepPurple,
                       ),
@@ -254,11 +254,11 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                   keyboardType: TextInputType.phone,
                   inputFormatters: [LengthLimitingTextInputFormatter(10)],
                   decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.phone),
+                    prefixIcon: const Icon(Icons.phone),
                     labelText: "Contact Number",
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         color: Colors.deepPurple,
                         width: 2,
                       ),
@@ -270,11 +270,11 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                   controller: _occupationController,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.work),
+                    prefixIcon: const Icon(Icons.work),
                     labelText: "Occupation",
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         color: Colors.deepPurple,
                         width: 2,
                       ),
@@ -286,11 +286,11 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                   controller: _aadharController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.credit_card_rounded),
+                    prefixIcon: const Icon(Icons.credit_card_rounded),
                     labelText: "Aadhar Number",
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                         color: Colors.deepPurple,
                         width: 2,
                       ),
@@ -399,7 +399,7 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
                   onPressed: () {
                     saveData();
                   },
-                  child: Text("Submit"),
+                  child: const Text("Submit"),
                 )
               ],
             ),

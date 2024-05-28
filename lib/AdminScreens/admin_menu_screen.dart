@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gate_keeper_app/AdminScreens/complain_list.dart';
 import 'package:gate_keeper_app/AdminScreens/guard_list.dart';
 import 'package:gate_keeper_app/AdminScreens/admin_sign_in_screen.dart';
 import 'package:gate_keeper_app/AdminScreens/maid_list.dart';
@@ -21,11 +22,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   @override
   Widget build(BuildContext context) {
 
-    // SharedPreferences.getInstance().then((SharedPreferences shared){
-    //   if(shared.getString("userId") == null || shared.getString("userId") == ''){
-    //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> MenuScreen())) ;
-    //   }
-    // });
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -243,7 +239,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 const SizedBox(height: 60),
                 ElevatedButton(
                   onPressed: () {
-                    // Add your onPressed logic here
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => ComplaintsLog(),));
                   },
                   style: ButtonStyle(
                     elevation: MaterialStateProperty.all(10),

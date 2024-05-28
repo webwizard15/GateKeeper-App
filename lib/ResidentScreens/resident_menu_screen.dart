@@ -4,9 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/ResidentScreens/approvals_request_screens.dart';
+import 'package:gate_keeper_app/ResidentScreens/complaint.dart';
 import 'package:gate_keeper_app/ResidentScreens/notice_list.dart';
 import 'package:gate_keeper_app/ResidentScreens/resident_sign_in_screen.dart';
 import 'package:gate_keeper_app/ResidentScreens/society_details.dart';
+import 'package:gate_keeper_app/ResidentScreens/visitor_list.dart';
 import 'package:gate_keeper_app/screens/menu_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,8 +57,8 @@ class ResidentMenuScreen extends StatelessWidget{
                 ),
             ),
             ListTile(
-              leading: Icon(Icons.event_note_outlined, size:25),
-              title:Text("Complaints",
+              leading: const Icon(Icons.event_note_outlined, size:25),
+              title:const Text("Complaints",
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     fontWeight: FontWeight.w400,
@@ -68,8 +70,8 @@ class ResidentMenuScreen extends StatelessWidget{
               },
             ),
             ListTile(
-              leading: Icon(Icons.people, size:25),
-              title:Text("Visitors",
+              leading: const Icon(Icons.people, size:25),
+              title:const Text("Visitors",
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     fontWeight: FontWeight.w400,
@@ -77,12 +79,12 @@ class ResidentMenuScreen extends StatelessWidget{
                 ),
               ),
               onTap: (){
-
+             Navigator.push(context, MaterialPageRoute(builder: (context) => const VisitorList(),));
               },
             ),
             ListTile(
-              leading: Icon(Icons.phone_android, size:25),
-              title:Text("Contact us",
+              leading: const Icon(Icons.phone_android, size:25),
+              title:const Text("Contact us",
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     fontWeight: FontWeight.w400,
@@ -90,12 +92,12 @@ class ResidentMenuScreen extends StatelessWidget{
                 ),
               ),
               onTap: (){
-             Navigator.push(context, MaterialPageRoute(builder: (context) => SocietyDetails(),),);
+             Navigator.push(context, MaterialPageRoute(builder: (context) =>const  SocietyDetails(),),);
               },
             ),
             ListTile(
-              leading: Icon(Icons.logout, size:25),
-              title:Text("Log Out",
+              leading: const Icon(Icons.logout, size:25),
+              title:const Text("Log Out",
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     fontWeight: FontWeight.w400,
@@ -107,12 +109,12 @@ class ResidentMenuScreen extends StatelessWidget{
                 FirebaseAuth.instance.signOut();
                 (await SharedPreferences.getInstance()).clear();
                 Navigator.popUntil(context, (route) => false);
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> MenuScreen()));
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> ResidentSignInScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> const MenuScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> const ResidentSignInScreen()));
 
               },
             ),
-            Divider(
+           const  Divider(
               thickness:2,
               endIndent: 8,
               indent: 8
@@ -151,7 +153,7 @@ class ResidentMenuScreen extends StatelessWidget{
                  )
              ),
               const SizedBox(height: 10),
-              Text("Approvals",
+             const  Text("Approvals",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -183,7 +185,7 @@ class ResidentMenuScreen extends StatelessWidget{
                  )
              ),
               const SizedBox(height: 10),
-              Text("Notice",
+             const Text("Notice",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -192,6 +194,7 @@ class ResidentMenuScreen extends StatelessWidget{
               const SizedBox(height: 20),
               ElevatedButton(
                  onPressed: (){
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ComplaintScreen(),));
                  },
                  style: ButtonStyle(
                    elevation: MaterialStateProperty.all(10),
@@ -214,7 +217,7 @@ class ResidentMenuScreen extends StatelessWidget{
                  )
              ),
               const SizedBox(height: 10),
-              Text("Complaints",
+               const  Text("Complaints",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
