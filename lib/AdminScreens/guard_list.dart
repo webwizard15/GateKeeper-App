@@ -8,22 +8,25 @@ class AddEmployee extends StatefulWidget {
   const AddEmployee({super.key});
 
   @override
-  _AddEmployeeState createState() => _AddEmployeeState();
+  State<AddEmployee> createState() => _AddEmployeeState();
 }
 
 class _AddEmployeeState extends State<AddEmployee> {
   String? societyUserId;
- @override
+
+  @override
   void initState() {
-   initializeData();
     super.initState();
+    initializeData();
   }
-  void initializeData()async{
-   String? userId = (await SharedPreferences.getInstance()).getString("userId");
-   setState(() {
-     societyUserId = userId;
-   });
+
+  void initializeData() async {
+    String? userId = (await SharedPreferences.getInstance()).getString("userId");
+    setState(() {
+      societyUserId = userId;
+    });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +39,7 @@ class _AddEmployeeState extends State<AddEmployee> {
             ),
           );
         },
-        child:const  Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -58,54 +61,60 @@ class _AddEmployeeState extends State<AddEmployee> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TextField(
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey.withOpacity(0.2),
-                hintText: "search..",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-              ),
-              onChanged: (value) {
-                // Implement your search logic here
-              },
-            ),
-          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection("Guards").where("SocietyId", isEqualTo:societyUserId).snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection("Guards")
+                  .where("SocietyId", isEqualTo: societyUserId)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    final guards = snapshot.data!.docs.toList();
+                  if (snapshot.hasData) {
+                    final guards = snapshot.data!.docs;
+                    if (guards.isEmpty) {
+                      return const Center(child: Text("No Data Available"));
+                    }
                     return ListView.builder(
                       itemCount: guards.length,
                       itemBuilder: (context, index) {
                         var guard = guards[index];
-                       String guardId = guards[index].id;
+                        String guardId = guards[index].id;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Material(
-                            elevation:5,
+                            elevation: 5,
                             child: ListTile(
-                              onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => GuardProfile(name: guard["name"], phoneNumber: guard["contactNumber"], address: guard["address"], profilePicture: guard["profilePic"], aadharNumber: guard["aadhar"], guardId: guardId),));
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => GuardProfile(
+                                      name: guard["name"],
+                                      phoneNumber: guard["contactNumber"],
+                                      address: guard["address"],
+                                      profilePicture: guard["profilePic"],
+                                      aadharNumber: guard["aadhar"],
+                                      guardId: guardId,
+                                    ),
+                                  ),
+                                );
                               },
-                              title: Text(guard["name"], style: const TextStyle(fontWeight: FontWeight.bold),),
+                              title: Text(
+                                guard["name"],
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
                               leading: CircleAvatar(
                                 radius: 25,
                                 backgroundImage: NetworkImage(guard["profilePic"]),
                               ),
                               subtitle: Row(
                                 children: [
-                                  const Icon(Icons.phone, size: 15,),
-                                  const SizedBox(width: 5,),
-                                  Text(guard["contactNumber"],style: const TextStyle(fontSize: 15),),
+                                  const Icon(Icons.phone, size: 15),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    guard["contactNumber"],
+                                    style: const TextStyle(fontSize: 15),
+                                  ),
                                 ],
                               ),
                             ),
@@ -114,7 +123,7 @@ class _AddEmployeeState extends State<AddEmployee> {
                       },
                     );
                   } else {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: Text("No Data Available"));
                   }
                 } else {
                   return const Center(child: CircularProgressIndicator());

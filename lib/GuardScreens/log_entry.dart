@@ -1,10 +1,9 @@
-import "package:cloud_firestore/cloud_firestore.dart";
-import "package:flutter/Material.dart";
-import "package:flutter/material.dart";
-import "package:flutter/material.dart.";
-import "package:gate_keeper_app/GuardScreens/voiceCalling.dart";
-import "package:shared_preferences/shared_preferences.dart";
-import "package:url_launcher/url_launcher.dart";
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:gate_keeper_app/GuardScreens/voiceCalling.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LogEntryList extends StatefulWidget {
   const LogEntryList({super.key});
@@ -19,6 +18,7 @@ class _LogEntryListState extends State<LogEntryList> {
   void updateData(String? id) async {
     await FirebaseFirestore.instance.collection("Visitors").doc(id).update({
       "status": "Exit",
+      "exitDate": Timestamp.now(),
     });
   }
 
@@ -80,6 +80,17 @@ class _LogEntryListState extends State<LogEntryList> {
                   String towerName = snapshot.data?.docs[index]["towerName"];
                   String flatNumber = snapshot.data?.docs[index]["flatNumber"];
                   String towerId = snapshot.data?.docs[index]["towerId"];
+                  Timestamp dateTime = snapshot.data?.docs[index]["timestamp"];
+                  DateTime date = dateTime.toDate();
+                  String formattedDate = DateFormat('dd-MM-yyyy / hh:mm').format(date);
+
+                  // Exit date formatting
+                  String? exitDateFormatted;
+                  if (statusValue == "Exit") {
+                    Timestamp exitTimestamp = snapshot.data?.docs[index]["exitDate"];
+                    DateTime exitDate = exitTimestamp.toDate();
+                    exitDateFormatted = DateFormat('dd-MM-yyyy / hh:mm').format(exitDate);
+                  }
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 10),
@@ -107,15 +118,19 @@ class _LogEntryListState extends State<LogEntryList> {
                                   const SizedBox(height: 5,),
                                   Text(purpose, maxLines: 1),
                                   const SizedBox(height: 5,),
-                                  Text(statusValue, style: TextStyle(color:  statusValue== "Pending"? Colors.orange : statusValue == "Approved"? Colors.green : Colors.red
-                                  ),),
+                                  Text(statusValue, style: TextStyle(color: statusValue == "Pending" ? Colors.orange : statusValue == "Approved" ? Colors.green : Colors.red)),
                                   const SizedBox(height: 5,),
-                                 GestureDetector(
-                                   onTap: ()async{
-                                     Uri contact = Uri.parse("tel: $phoneNumber" );
-                                     await launchUrl(contact);
-                                   },
-                                     child: Text(phoneNumber, style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.blue),))
+                                  GestureDetector(
+                                    onTap: () async {
+                                      Uri contact = Uri.parse("tel:$phoneNumber");
+                                      await launchUrl(contact);
+                                    },
+                                    child: Text(phoneNumber, style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.blue)),
+                                  ),
+                                  const SizedBox(height: 5,),
+                                  Text('Entry: $formattedDate', style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.normal)),
+                                  if (exitDateFormatted != null)
+                                    Text('Exited: $exitDateFormatted', style: const TextStyle(fontSize: 10, color: Colors.red)),
                                 ],
                               ),
                             ),
@@ -133,11 +148,11 @@ class _LogEntryListState extends State<LogEntryList> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       Text(flatNumber),
-                                     const SizedBox(width: 15,)
+                                      const SizedBox(width: 15,),
                                     ],
                                   ),
                                   const SizedBox(height: 5,),
-                                  Row (
+                                  Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       GestureDetector(
@@ -147,10 +162,16 @@ class _LogEntryListState extends State<LogEntryList> {
                                               .where("tower", isEqualTo: towerId)
                                               .where("flat", isEqualTo: flatNumber)
                                               .get();
-                                          String contactNumber = querySnapshot.docs[0]["contactNumber"];
-                                          // Uri phoneNumber = Uri.parse("tel:$contactNumber");
-                                          // await launchUrl(phoneNumber);
-                                          Navigator.push(context, MaterialPageRoute(builder: (context)=> CallPage(callID: querySnapshot.docs[0].id, userId: querySnapshot.docs[0].id, userName: querySnapshot.docs[0]["name"])));
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => CallPage(
+                                                callID: querySnapshot.docs[0].id,
+                                                userId: querySnapshot.docs[0].id,
+                                                userName: querySnapshot.docs[0]["name"],
+                                              ),
+                                            ),
+                                          );
                                         },
                                         child: const Icon(Icons.phone, size: 18),
                                       ),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/Material.dart';
 import 'package:gate_keeper_app/GuardScreens/guard_sign_in_screen.dart';
@@ -7,7 +8,6 @@ import 'package:gate_keeper_app/GuardScreens/resident_maid_logs.dart';
 import 'package:gate_keeper_app/GuardScreens/resident_towers.dart';
 import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../screens/menu_screen.dart';
 
 class GuardMenu extends StatefulWidget {
@@ -18,6 +18,27 @@ class GuardMenu extends StatefulWidget {
 }
 
 class _GuardMenuState extends State<GuardMenu> {
+  String? picture;
+  String? guardName;
+
+  @override
+  void initState() {
+    _initializeData();
+    super.initState();
+  }
+
+  void _initializeData() async {
+    String? guardUserId = (await SharedPreferences.getInstance()).getString("userId");
+    if (guardUserId != null) {
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection("Guards").doc(guardUserId).get();
+      String profilePic = doc["profilePic"];
+      String name = doc["name"];
+      setState(() {
+        picture = profilePic;
+        guardName = name;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,21 +74,25 @@ class _GuardMenuState extends State<GuardMenu> {
         width: 250,
         child: ListView(
           children: [
-            const DrawerHeader(
-              padding: EdgeInsets.all(10),
+             DrawerHeader(
+              padding:const EdgeInsets.all(10),
               //first is header
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  if(picture!= null)
                   CircleAvatar(
-                    backgroundImage: AssetImage("assets/Guard.png"),
+                    backgroundImage: NetworkImage(picture!),
                     radius: 50,
-                  ),
+                  )
+                  else
+                    const CircularProgressIndicator(),
+                  if(guardName!= null)
                   Padding(
-                    padding: EdgeInsets.only(top: 10.0),
+                    padding:const  EdgeInsets.only(top: 10.0),
                     child: Text(
-                      "Anmol Shukla",
-                      style: TextStyle(fontWeight: FontWeight.bold,),
+                      guardName!,
+                      style: const TextStyle(fontWeight: FontWeight.bold,),
                     ),
                   )
                 ],

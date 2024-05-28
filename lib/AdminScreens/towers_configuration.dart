@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/AdminScreens/admin_menu_screen.dart';
 import 'package:gate_keeper_app/AdminScreens/registration.dart';
 import 'package:gate_keeper_app/AdminScreens/tower_updation.dart';
@@ -49,24 +48,12 @@ class _TowerConfigurationState extends State<TowersConfigurationScreen> {
                     .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Expanded(
-                      child: Container(
-                        height: MediaQuery.sizeOf(context).height,
-                        width: MediaQuery.sizeOf(context).width,
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
+                    return const Center(
+                      child: CircularProgressIndicator(),
                     );
                   } else if (snapshot.hasError) {
-                    return Expanded(
-                      child: Container(
-                        height: MediaQuery.sizeOf(context).height,
-                        width: MediaQuery.sizeOf(context).width,
-                        child: Center(
-                          child: Text('Error: ${snapshot.error}'),
-                        ),
-                      ),
+                    return Center(
+                      child: Text('Error: ${snapshot.error}'),
                     );
                   } else if (!snapshot.hasData ||
                       snapshot.data!.data() == null) {

@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart.';
@@ -27,47 +26,47 @@ class _SignInScreenState extends State<AdminSignInScreen> {
     }
     try {
       EasyLoading.show();
-    UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
+      UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
           .signInWithEmailAndPassword(
         email: email,
         password: phoneNumber, // Use a dummy password or another authentication method
       );
-    if(userCredential.user!.uid.isNotEmpty){
-    DocumentSnapshot  data =   await FirebaseFirestore.instance.collection("admins").doc(userCredential.user!.uid).get();
-    final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
-    Map? userData =  data.data() as Map<String,dynamic>;  //converting obj to Map
-    if(userData["type"] == 0){    // admin
-      _prefs.setString("userId", userData["id"]);    //Stored Id in shared Preference
-      _prefs.setInt("type", userData["type"]); //Stored type in shared Preference
-      Navigator.popUntil(context, (route) => false);
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const AdminMenuScreen()));
- EasyLoading.dismiss();
+      if(userCredential.user!.uid.isNotEmpty){
+        DocumentSnapshot  data =   await FirebaseFirestore.instance.collection("admins").doc(userCredential.user!.uid).get();
+        final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
+        Map? userData =  data.data() as Map<String,dynamic>;  //converting obj to Map
+        if(userData["type"] == 0){    // admin
+          _prefs.setString("userId", userData["id"]);    //Stored Id in shared Preference
+          _prefs.setInt("type", userData["type"]); //Stored type in shared Preference
+          Navigator.popUntil(context, (route) => false);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const AdminMenuScreen()));
+          EasyLoading.dismiss();
 
-    }else{
-      DialogBox.showDialogBox(context, "Don't have admin access");
-      EasyLoading.dismiss();
-    }
+        }else{
+          DialogBox.showDialogBox(context, "Don't have admin access");
+          EasyLoading.dismiss();
+        }
 
-    }
+      }
 
 
 
 
     } catch (e) {
-            if(e is FirebaseAuthException){
-              if(e.code == "user-not-found"){
-                DialogBox.showDialogBox(context, "User Not Found");
-                EasyLoading.dismiss();
-              } else{
-                DialogBox.showDialogBox(context, "Invalid Credentials");
-                EasyLoading.dismiss();
-                return;
-              }
-            } else{
-              DialogBox.showDialogBox(context,"An Unexpected error Occurred");
-              EasyLoading.dismiss();
-            }
+      if(e is FirebaseAuthException){
+        if(e.code == "user-not-found"){
+          DialogBox.showDialogBox(context, "User Not Found");
+          EasyLoading.dismiss();
+        } else{
+          DialogBox.showDialogBox(context, "Invalid Credentials");
+          EasyLoading.dismiss();
+          return;
+        }
+      } else{
+        DialogBox.showDialogBox(context,e.toString());
+        EasyLoading.dismiss();
+      }
     }
   }
 
@@ -101,13 +100,13 @@ class _SignInScreenState extends State<AdminSignInScreen> {
                     height: 100,
                     width: 100,
                     decoration: const BoxDecoration(
-                        image:
-                            DecorationImage(image: AssetImage("assets/App.png")
-                              ,),
+                      image:
+                      DecorationImage(image: AssetImage("assets/App.png")
+                        ,),
                     )
                     ,
                   ),
-                 const Text(
+                  const Text(
                     "GATE KEEPER",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -126,10 +125,10 @@ class _SignInScreenState extends State<AdminSignInScreen> {
                 controller: _aadharController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: "Aadhar Number",
-                  border:OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  )
+                    labelText: "Aadhaar Number",
+                    border:OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    )
                 ),
               ),
               const SizedBox(height: 30),
@@ -137,10 +136,10 @@ class _SignInScreenState extends State<AdminSignInScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: "Phone number",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  )
+                    labelText: "Phone Number",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    )
                 ),
               ),
               const SizedBox(height: 60),
@@ -170,7 +169,7 @@ class _SignInScreenState extends State<AdminSignInScreen> {
                   )
                 ],
               ),
-        
+
             ],
           ),
         ),
@@ -178,3 +177,4 @@ class _SignInScreenState extends State<AdminSignInScreen> {
     );
   }
 }
+

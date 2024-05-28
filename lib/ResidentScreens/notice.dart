@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 class NoticeScreen extends StatelessWidget{
   final String title;
   final String description;
-  const NoticeScreen({required this.title, required  this.description, Key? key}) : super(key: key);
+  const NoticeScreen({required this.title, required  this.description, super.key});
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -22,7 +22,7 @@ class NoticeScreen extends StatelessWidget{
           child: AppBar(
 
             centerTitle: true,
-            title: Text(title),
+            title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
           ),
         ),
       ),

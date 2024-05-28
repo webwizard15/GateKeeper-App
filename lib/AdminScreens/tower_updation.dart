@@ -88,10 +88,64 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
           }
           break;
         case 3:
+          for (int floor = 0; floor <= numberOfFloors; floor++) {
+            for (int unit = 1; unit <= maxUnitPerFloor; unit++) {
+              String flatNumber;
+              if (floor == 0) {
+                flatNumber = "G$unit";
+              } else {
+                flatNumber = "${floor}0$unit";
+              }
+              await FirebaseFirestore.instance
+                  .collection("Towers")
+                  .doc(userId + widget.towerNumber.toString())
+                  .collection("Flats")
+                  .doc(flatNumber)
+                  .set({
+                "flatNumber": flatNumber,
+              });
+            }
+          }
           break;
         case 4:
+          for (int floor = 0; floor < numberOfFloors; floor++) {
+            for (int unit = 1; unit <= maxUnitPerFloor; unit++) {
+              String flatNumber;
+              if (floor == 0) {
+                flatNumber = "G$unit";
+              } else {
+                flatNumber = "${(floor * maxUnitPerFloor) + unit}";
+              }
+              await FirebaseFirestore.instance
+                  .collection("Towers")
+                  .doc(userId + widget.towerNumber.toString())
+                  .collection("Flats")
+                  .doc(flatNumber)
+                  .set({
+                "flatNumber": flatNumber,
+              });
+            }
+          }
           break;
         case 5:
+          for (int floor = 0; floor < numberOfFloors; floor++) {
+            for (int unit = 1; unit <= maxUnitPerFloor; unit++) {
+              String flatNumber;
+              if (floor == 0) {
+                flatNumber = "G$unit";
+              } else {
+                flatNumber = "${(floor * maxUnitPerFloor) + unit}";
+              }
+              await FirebaseFirestore.instance
+                  .collection("Towers")
+                  .doc(userId + widget.towerNumber.toString())
+                  .collection("Flats")
+                  .doc(flatNumber)
+                  .set({
+                "flatNumber": flatNumber,
+              });
+            }
+          }
           break;
 
         default:

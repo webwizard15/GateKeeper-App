@@ -112,7 +112,7 @@ class _GuardSignInScreenState extends State<GuardSignInScreen> {
                 controller: _aadharController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                    labelText: "Aadhar Number",
+                    labelText: "Aadhaar Number",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     )),
@@ -122,7 +122,7 @@ class _GuardSignInScreenState extends State<GuardSignInScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                    labelText: "Phone number",
+                    labelText: "Phone Number",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     )),

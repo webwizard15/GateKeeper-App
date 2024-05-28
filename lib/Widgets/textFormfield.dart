@@ -6,13 +6,14 @@ class TextFormFieldWidget extends StatelessWidget {
   final TextInputType? keyboardType;
   final int? maxLength;
 
-  const TextFormFieldWidget({
-    Key? key,
+
+   const TextFormFieldWidget({
+    super.key,
     required this.label,
     required this.controller,
     this.keyboardType,
     this.maxLength,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,7 @@ class TextFormFieldWidget extends StatelessWidget {
         labelText: label,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
+          borderSide: const BorderSide(
             color: Colors.deepPurple,
             width: 2,
           ),

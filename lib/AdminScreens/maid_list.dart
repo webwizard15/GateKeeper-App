@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/AdminScreens/maid_form.dart';
@@ -61,28 +60,12 @@ class _MaidListScreenState extends State<MaidListScreen> {
                 .where("SocietyId", isEqualTo: societyUserId)
                 .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Expanded(
-                    child: Container(
-                  height: MediaQuery.sizeOf(context).height,
-                  width: MediaQuery.sizeOf(context).width,
-                  child: const Center(child: Text("No Data Available")),
-                ));
-              }
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Expanded(
-                  child: Container(
-                      height: MediaQuery.sizeOf(context).height,
-                      width: MediaQuery.sizeOf(context).width,
-                      child: const Center(child: CircularProgressIndicator())),
-                );
+                return const Center(child: CircularProgressIndicator());
+              } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('No data available', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),));
               } else if (snapshot.hasError) {
-                return Expanded(
-                    child: Container(
-                  height: MediaQuery.sizeOf(context).height,
-                  width: MediaQuery.sizeOf(context).width,
-                  child: Center(child: Text('Error: ${snapshot.error}')),
-                ));
+                return Center(child: Text('Error: ${snapshot.error}'));
               } else {
                 final docs = snapshot.data?.docs.toList();
                 return ListView.builder(
@@ -93,7 +76,7 @@ class _MaidListScreenState extends State<MaidListScreen> {
                     String flatNumber = docs?[index]["flatNumber"];
                     String towerName = docs?[index]["tower"]["name"];
                     String profilePic = docs?[index]["profilePic"];
-                    String? maidId= docs?[index].id;
+                    String? maidId = docs?[index].id;
                     String aadharNumber = docs?[index]["aadhar"];
                     String address = docs?[index]["address"];
                     return Padding(
@@ -101,18 +84,30 @@ class _MaidListScreenState extends State<MaidListScreen> {
                       child: Material(
                         elevation: 5,
                         child: ListTile(
-                          onTap: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => MaidProfile(name: name,
-                            phoneNumber: phoneNumber, aadharNumber: aadharNumber,address:address,profilePicture: profilePic,maidId: maidId,
-                            ),
-                            ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MaidProfile(
+                                  name: name,
+                                  phoneNumber: phoneNumber,
+                                  aadharNumber: aadharNumber,
+                                  address: address,
+                                  profilePicture: profilePic,
+                                  maidId: maidId,
+                                ),
+                              ),
                             );
                           },
                           leading: CircleAvatar(
                             radius: 25,
                             backgroundImage: NetworkImage(profilePic),
                           ),
-                          title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                          title: Text(
+                            name,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
                           subtitle: Row(
                             children: [
                               const Icon(
@@ -122,7 +117,11 @@ class _MaidListScreenState extends State<MaidListScreen> {
                               const SizedBox(
                                 width: 5,
                               ),
-                              Text(phoneNumber, style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 15,)),
+                              Text(phoneNumber,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 15,
+                                  )),
                             ],
                           ),
                           trailing: Column(

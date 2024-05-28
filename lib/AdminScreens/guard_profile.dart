@@ -1,15 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../Widgets/validations.dart';
+
 class GuardProfile extends StatefulWidget{
-  final String name;
-  final String phoneNumber;
+   String name;
+   String phoneNumber;
+   String address;
   final String aadharNumber;
   final String profilePicture;
-  final String address;
   final String? guardId;
-  const GuardProfile({
+   GuardProfile({
     super.key,
     required this.name,
     required this.phoneNumber,
@@ -25,6 +28,98 @@ class _MaidProfileState extends State<GuardProfile>{
   void deleteProfile()async{
     await FirebaseFirestore.instance.collection("Guard").doc(widget.guardId).delete();
 
+  }
+
+  void editDetails(){
+    final TextEditingController nameController = TextEditingController(text: widget.name);
+    final TextEditingController phoneController = TextEditingController(text: widget.phoneNumber);
+    final TextEditingController addressController = TextEditingController(text: widget.address);
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+    showDialog(context: context,
+        builder: (context) => AlertDialog(
+          title:const Text("Edit Details"),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  keyboardType: TextInputType.text,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: Validation.nameValidation,
+                  decoration: InputDecoration(
+                    labelText: "Name",
+                    prefixIcon: const Icon(Icons.people),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: const BorderSide(
+                        width: 2,
+                        color: Colors.deepPurple,
+                      ),
+                    ),
+                  ),
+                ),
+                TextFormField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: Validation.phoneValidation,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.phone),
+                    labelText: "Contact Number",
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: const BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+                TextFormField(
+                  controller: addressController,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.work),
+                    labelText: "Address",
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: const BorderSide(
+                        color: Colors.deepPurple,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: ()async{
+              if (!formKey.currentState!.validate()) return;
+              if(nameController.text.isEmpty|| phoneController.text.isEmpty || addressController.text.isEmpty){
+                DialogBox.showDialogBox(context, "Please provide the valid details");
+              }
+              try{
+                await FirebaseFirestore.instance.collection("Guards").doc(widget.guardId).update({
+                  "name": nameController.text.trim(),
+                  "contactNumber": phoneController.text.trim(),
+                  "address": addressController.text.trim(),
+                });
+                 setState(() {
+                   widget.name = nameController.text.trim();
+                   widget.phoneNumber= phoneController.text.trim();
+                   widget.address = addressController.text.trim();
+                 });
+                Navigator.pop(context);
+              } catch(e){
+                DialogBox.showDialogBox(context, "unable to edit");
+              }
+
+            }, child:const Text("SAVE"))
+          ],
+        ),);
   }
   @override
   Widget build(BuildContext context){
@@ -88,7 +183,7 @@ class _MaidProfileState extends State<GuardProfile>{
               ),
             ),
             const SizedBox(height: 20,),
-            Center(child: Text(widget.name, style:const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
+            Center(child: Text(widget.name, maxLines: 1,overflow: TextOverflow.ellipsis, style:const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
             const SizedBox(height: 20,),
             Container(
               padding: const EdgeInsets.fromLTRB(10,20,10, 20),
@@ -98,6 +193,18 @@ class _MaidProfileState extends State<GuardProfile>{
               ),
               child: Column(
                 children: [
+                  SizedBox(
+                   height: 15,
+                    child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 5,),
+                  IconButton(onPressed: (){
+                    editDetails();
+                  }, icon:const Icon(Icons.edit, size:15,))
+                ],
+              ),
+                  ),
                   Row(
                     children:[
                       const Text("Contact Number :", style: TextStyle(fontWeight: FontWeight.bold,  fontSize: 15)),
@@ -118,17 +225,25 @@ class _MaidProfileState extends State<GuardProfile>{
                   ),
                   const SizedBox(height: 15,),
                   Row(
-
                     children:[
                       const Text("Address :", style: TextStyle(fontWeight: FontWeight.bold,  fontSize: 15),),
                       const SizedBox(width: 15,),
-                      Text(widget.address, style: const TextStyle(fontSize: 15),),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            widget.address,
+                            style: const TextStyle(fontSize: 15),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 15,),
                   Row(
                     children:[
-                      const Text("Addhar Number :", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const Text("Aadhaar Number :", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(width: 15,),
                       Text(widget.aadharNumber, style: const TextStyle(fontSize: 15),),
                     ],

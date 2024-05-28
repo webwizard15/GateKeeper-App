@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/Material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart.';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/AdminScreens/admin_menu_screen.dart';
 import 'package:gate_keeper_app/ResidentScreens/resident_menu_screen.dart';
 import 'package:gate_keeper_app/ResidentScreens/resident_registration_screen.dart';
@@ -73,7 +74,7 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
                 controller: _phoneController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                    labelText: "Phone number",
+                    labelText: "Phone Number",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     )),
@@ -142,13 +143,14 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
       return;
     }
     try {
+          EasyLoading.show();
       UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
           .signInWithEmailAndPassword(
         email: email,
         password: phoneNumber, // Use a dummy password or another authentication method
       );
       if(userCredential.user!.email != null){
-        QuerySnapshot  data =   await FirebaseFirestore.instance.collection("resident").where("aadhar",isEqualTo: userCredential.user!.email!.replaceAll("@gmail.com", '')).get();
+        QuerySnapshot  data =   await FirebaseFirestore.instance.collection("resident").where("aadhaar",isEqualTo: userCredential.user!.email!.replaceAll("@gmail.com", '')).get();
         final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
         Map? userData =  data.docs[0].data() as Map<String,dynamic>;  //converting obj to Map
         if(userData["type"] == 1){    // admin
@@ -159,10 +161,11 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
           Navigator.popUntil(context, (route) => false);
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const ResidentMenuScreen()));
-
+          EasyLoading.dismiss();
 
         }else{
           DialogBox.showDialogBox(context, "Don't have resident access");
+          EasyLoading.dismiss();
         }
 
 
@@ -175,8 +178,10 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
       if(e is FirebaseAuthException){
         if(e.code == "user-not-found"){
           DialogBox.showDialogBox(context, "User Not Found");
+          EasyLoading.dismiss();
         } else{
           DialogBox.showDialogBox(context, "Invalid Credentials");
+          EasyLoading.dismiss();
           return;
         }
       } else{

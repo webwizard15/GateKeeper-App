@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,7 +38,7 @@ class _RequestApprovalState extends State<RequestApprovalScreen> {
 
   Future<void> updateVisitorStatus(String id, String status) async {
     await FirebaseFirestore.instance.collection("Visitors").doc(id).update({
-        "status": status
+        "status": status,
     });
   }
 
@@ -93,6 +94,9 @@ class _RequestApprovalState extends State<RequestApprovalScreen> {
                       itemCount: visitors.length,
                       itemBuilder: (context, index) {
                         final visitor = visitors[index];
+                        Timestamp dateTime = visitor["timestamp"];
+                        DateTime date = dateTime.toDate();
+                        String formattedDate = DateFormat('dd-MM-yyyy / hh:mm').format(date);
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Material(
@@ -187,6 +191,16 @@ class _RequestApprovalState extends State<RequestApprovalScreen> {
                                     ],
                                   ),
                                 ),
+                                const SizedBox(height: 10,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    const SizedBox(width: 5,),
+                                    Text(formattedDate, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),),
+                                    const SizedBox(width: 30,),
+                                  ],
+                                ),
+                                const SizedBox(height:5,)
                               ],
                             ),
                           ),

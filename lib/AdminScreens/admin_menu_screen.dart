@@ -1,31 +1,67 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:gate_keeper_app/AdminScreens/guard_list.dart';
-import 'package:gate_keeper_app/AdminScreens/admin_sign_in_screen.dart';
-import 'package:gate_keeper_app/AdminScreens/maid_list.dart';
-import 'package:gate_keeper_app/AdminScreens/notice_screen.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/AdminScreens/registration.dart';
 import 'package:gate_keeper_app/AdminScreens/resident_approval.dart';
-import 'package:gate_keeper_app/Guardscreens/guard_menu_screen.dart';
-import 'package:gate_keeper_app/ResidentScreens/resident_menu_screen.dart';
-import 'package:gate_keeper_app/screens/menu_screen.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+import '../Widgets/dialogue_box.dart';
+import '../screens/menu_screen.dart';
+import 'admin_sign_in_screen.dart';
+import 'complain_list.dart';
+import 'guard_list.dart';
+import 'maid_list.dart';
+import 'notice_screen.dart';
 
 class AdminMenuScreen extends StatefulWidget {
-  const AdminMenuScreen({super.key});
+  const AdminMenuScreen({Key? key}) : super(key: key);
   @override
   State<AdminMenuScreen> createState() => _AdminMenuScreenState();
 }
 
 class _AdminMenuScreenState extends State<AdminMenuScreen> {
+  String? adminName;
+  File? profilePic;
+  String? userId;
+
+  @override
+  void initState() {
+    _initializeData();
+    super.initState();
+  }
+
+  void _initializeData() async {
+    String? adminUserId =
+    (await SharedPreferences.getInstance()).getString("userId");
+    if (adminUserId != null) {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("admins")
+          .doc(adminUserId)
+          .get();
+      DocumentSnapshot document = await FirebaseFirestore.instance
+          .collection("Society")
+          .doc(adminUserId)
+          .get();
+      if( document.exists){
+        String? name = doc["name"];
+        setState(() {
+          adminName = name;
+        });
+      }
+
+      setState(() {
+        userId = adminUserId;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-
-    // SharedPreferences.getInstance().then((SharedPreferences shared){
-    //   if(shared.getString("userId") == null || shared.getString("userId") == ''){
-    //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> MenuScreen())) ;
-    //   }
-    // });
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -54,22 +90,169 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
         width: 200,
         child: ListView(
           children: [
-            const DrawerHeader(
-              padding: EdgeInsets.all(10),
+            DrawerHeader(
+              padding: const EdgeInsets.all(10),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage("assets/Man.png"),
+                  Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.black, // Border color
+                            width: 0.5, // Border width
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundImage: (profilePic != null)
+                              ? FileImage(profilePic!)
+                              : const AssetImage("assets/Man.png")
+                          as ImageProvider<Object>,
+                        ),
+                      ),
+                      Positioned(
+                        left: 72,
+                        top: 72,
+                        child: GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (context) => Container(
+                                height: 100,
+                                margin: const EdgeInsets.only(
+                                  top: 20,
+                                  bottom: 20,
+                                ),
+                                child: ListView(
+                                  children: [
+                                    ListTile(
+                                      onTap: () async {
+                                        XFile? selectedImage =
+                                        await ImagePicker().pickImage(
+                                            source: ImageSource.gallery);
+
+                                        if (selectedImage != null) {
+                                          File convertedFile =
+                                          File(selectedImage.path);
+                                          try {
+                                            EasyLoading.show();
+                                            UploadTask uploadTask =
+                                            FirebaseStorage.instance
+                                                .ref()
+                                                .child("AdminProfilePictures")
+                                                .child(const Uuid().v1())
+                                                .putFile(convertedFile);
+                                            TaskSnapshot taskSnapshot =
+                                            await uploadTask;
+                                            String downloadUrl =
+                                            await taskSnapshot.ref
+                                                .getDownloadURL();
+                                            await FirebaseFirestore.instance
+                                                .collection("admins")
+                                                .doc(userId)
+                                                .update(
+                                                {"profilePicture": downloadUrl});
+                                            EasyLoading.dismiss();
+                                          } catch (e) {
+                                            DialogBox.showDialogBox(
+                                                context, "Unable to upload image");
+                                            EasyLoading.dismiss();
+                                          }
+                                          setState(() {
+                                            profilePic = convertedFile;
+                                          });
+                                          Navigator.pop(context);
+                                        } else {
+                                          Navigator.pop(context);
+                                          return;
+                                        }
+                                      },
+                                      leading: const Icon(Icons.photo_library_outlined),
+                                      title: const Text("Gallery"),
+                                    ),
+                                    ListTile(
+                                      title: const Text("Camera"),
+                                      leading: const Icon(Icons.camera_alt_outlined),
+                                      onTap: () async {
+                            XFile? selectedImage =
+                            await ImagePicker().pickImage(
+                            source: ImageSource.camera);
+
+                            if (selectedImage != null) {
+                            File convertedFile =
+                            File(selectedImage.path);
+                            try {
+                            EasyLoading.show();
+                            UploadTask uploadTask =
+                            FirebaseStorage.instance
+                                .ref()
+                                .child("AdminProfilePictures")
+                                .child(const Uuid().v1())
+                                .putFile(convertedFile);
+                            TaskSnapshot taskSnapshot =
+                            await uploadTask;
+                            String downloadUrl =
+                            await taskSnapshot.ref
+                                .getDownloadURL();
+                            await FirebaseFirestore.instance
+                                .collection("admins")
+                                .doc(userId)
+                                .update(
+                            {"profilePicture": downloadUrl});
+                            EasyLoading.dismiss();
+                            } catch (e) {
+                            DialogBox.showDialogBox(
+                            context, "Unable to upload image");
+                            EasyLoading.dismiss();
+                            }
+                            setState(() {
+                            profilePic = convertedFile;
+                            });
+                            Navigator.pop(context);
+                            } else {
+                            Navigator.pop(context);
+                            return;
+                            }
+
+                                      },
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            height: 28,
+                            width: 28,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.blue,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 10),
-                    child: Text(
-                      "Admin", // Should not exceed ore than 18 words
+                    padding:const EdgeInsets.only(top: 10),
+                    child: adminName!=null? Text(
+                      adminName!, // Should not exceed more than 18 words
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ):const Text(
+                      "Admin", // Should not exceed more than 18 words
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
+                    ) ,
                   ),
                 ],
               ),
@@ -85,7 +268,11 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 ),
               ),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const Notice(),));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Notice(),
+                    ));
               },
             ),
             ListTile(
@@ -99,7 +286,11 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 ),
               ),
               onTap: () {
-                Navigator.push(context,MaterialPageRoute(builder: (context) =>const SocietyRegistration(),));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SocietyRegistration(),
+                    ));
               },
             ),
             ListTile(
@@ -112,13 +303,22 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                   color: Colors.black,
                 ),
               ),
-              onTap: () async{
-                SharedPreferences shared= await SharedPreferences.getInstance();
-                shared.clear();   //it will clear the id
+              onTap: () async {
+                SharedPreferences shared =
+                await SharedPreferences.getInstance();
+                shared.clear(); //it will clear the id
                 FirebaseAuth.instance.signOut();
-                Navigator.popUntil(context, (route) => false); // it will clear the stack.
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> const MenuScreen()));
-                Navigator.push(context, MaterialPageRoute(builder: (context) =>const AdminSignInScreen(),));
+                Navigator.popUntil(
+                    context, (route) => false); // it will clear the stack.
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MenuScreen()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminSignInScreen(),
+                    ));
               },
             ),
             const Divider(
@@ -141,7 +341,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>const AddEmployee(),
+                        builder: (context) => const AddEmployee(),
                       ),
                     );
                   },
@@ -167,7 +367,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  "Employee",
+                  "Guards",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -176,7 +376,11 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 const SizedBox(height: 60),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) =>const ResidentApprovalScreen(),));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ResidentApprovalScreen(),
+                        ));
                   },
                   style: ButtonStyle(
                     elevation: MaterialStateProperty.all(10),
@@ -212,7 +416,11 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 const SizedBox(height: 100),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,MaterialPageRoute(builder: (context) => const MaidListScreen(),));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MaidListScreen(),
+                        ));
                   },
                   style: ButtonStyle(
                     elevation: MaterialStateProperty.all(10),
@@ -243,7 +451,11 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                 const SizedBox(height: 60),
                 ElevatedButton(
                   onPressed: () {
-                    // Add your onPressed logic here
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ComplaintsLog(),
+                        ));
                   },
                   style: ButtonStyle(
                     elevation: MaterialStateProperty.all(10),
@@ -271,7 +483,6 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                     fontSize: 20,
                   ),
                 ),
-        
               ],
             )
           ],

@@ -1,10 +1,11 @@
-import 'dart:async';
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/Material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:gate_keeper_app/Widgets/validations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -25,6 +26,7 @@ class _VisitorFormState extends State<VisitorForm> {
   File? profilePic;
   List towersList =[];
   List flatList =[];
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   void saveData()async{
     String name = _nameController.text.trim();
@@ -33,7 +35,9 @@ class _VisitorFormState extends State<VisitorForm> {
     var tower = _towers;
     var flat = _flats;
     String? userId = (await SharedPreferences.getInstance()).getString("society");
-    if(name.isEmpty || phone.isEmpty || tower ==null || flat == null || profilePic == null){
+
+    if (!_formKey.currentState!.validate()) return;
+    if(tower ==null || flat == null || profilePic == null || purpose.isEmpty){
       DialogBox.showDialogBox(context,"Please Fill all the Details");
       return;
     }
@@ -51,7 +55,8 @@ class _VisitorFormState extends State<VisitorForm> {
         "towerId" : tower["id"],
         "towerName": tower["name"],
         "profilePic": downloadUrl,
-        "status" : "Pending"
+        "status" : "Pending",
+        "timestamp": DateTime.now(),
       });
       setState(() {
         _nameController.clear();
@@ -113,206 +118,211 @@ class _VisitorFormState extends State<VisitorForm> {
             ]),
             child: AppBar(
               elevation: 0,
+              centerTitle: true,
+              title:const Text("Visitor Details", style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),),
             ),
           ),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black, // Border color
-                        width: 0.5, // Border width
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black, // Border color
+                          width: 0.5, // Border width
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: (profilePic!= null)? FileImage(profilePic!): const AssetImage("assets/Man.png") as ImageProvider,
+                        //assets image returns assets image object which is subtype  of ImageProvider<Object>, but the backgroundImage property of CircleAvatar expected an ImageProvider<Object>? type.
                       ),
                     ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: (profilePic!= null)? FileImage(profilePic!): const AssetImage("assets/Man.png") as ImageProvider,
-                      //assets image returns assets image object which is subtype  of ImageProvider<Object>, but the backgroundImage property of CircleAvatar expected an ImageProvider<Object>? type.
-                    ),
-                  ),
-                  Positioned(
-                      top: 72,
-                      left: 72,
-                      child: GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (context) => Container(
-                                height: 100,
-                                margin:const EdgeInsets.only(
-                                  top: 20,
-                                  bottom: 20
+                    Positioned(
+                        top: 72,
+                        left: 72,
+                        child: GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                                context: context,
+                                builder: (context) => Container(
+                                  height: 100,
+                                  margin:const EdgeInsets.only(
+                                    top: 20,
+                                    bottom: 20
+                                  ),
+                                  child: ListView(
+                                    children: [
+                                      ListTile(
+                                        onTap: ()async{
+                                         XFile? selectedImage= await ImagePicker().pickImage(source: ImageSource.gallery);
+                                         if(selectedImage!= null){
+                                           File convertedFile= File(selectedImage.path);
+                                           setState(() {
+                                             profilePic = convertedFile;
+                                           });
+                                           Navigator.pop(context);
+                                         } else {
+                                           Navigator.pop(context);
+                                           return;
+                                         }
+                                        },
+                                        leading: const Icon(Icons.photo_library_outlined),
+                                        title: const Text("Gallery"),
+                                      ),
+                                      ListTile(
+                                        onTap: ()async{
+                                         XFile? selectedImage= await ImagePicker().pickImage(source: ImageSource.camera);
+                                         if(selectedImage!= null){
+                                           File convertedFile = File(selectedImage.path);
+                                           setState(() {
+                                             profilePic = convertedFile;
+                                           });
+                                           Navigator.pop(context);
+                                         } else{
+                                           Navigator.pop(context);
+                                           return;
+                                         }
+                                        },
+                                        leading: const Icon(Icons.photo_camera_outlined),
+                                        title: const Text("Camera"),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                child: ListView(
-                                  children: [
-                                    ListTile(
-                                      onTap: ()async{
-                                       XFile? selectedImage= await ImagePicker().pickImage(source: ImageSource.gallery);
-                                       if(selectedImage!= null){
-                                         File convertedFile= File(selectedImage.path);
-                                         setState(() {
-                                           profilePic = convertedFile;
-                                         });
-                                         Navigator.pop(context);
-                                       } else {
-                                         Navigator.pop(context);
-                                         return;
-                                       }
-                                      },
-                                      leading: const Icon(Icons.photo_library_outlined),
-                                      title: const Text("Gallery"),
-                                    ),
-                                    ListTile(
-                                      onTap: ()async{
-                                       XFile? selectedImage= await ImagePicker().pickImage(source: ImageSource.camera);
-                                       if(selectedImage!= null){
-                                         File convertedFile = File(selectedImage.path);
-                                         setState(() {
-                                           profilePic = convertedFile;
-                                         });
-                                         Navigator.pop(context);
-                                       } else{
-                                         Navigator.pop(context);
-                                         return;
-                                       }
-                                      },
-                                      leading: const Icon(Icons.photo_camera_outlined),
-                                      title: const Text("Camera"),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          );
-                        },
-                        child: Container(
-                          height: 28,
-                          width: 28,
-                          decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(50)),
-                          child: const Icon(
-                            Icons.camera_alt_outlined,
-                            color: Colors.white,
-                            size: 20,
+                            );
+                          },
+                          child: Container(
+                            height: 28,
+                            width: 28,
+                            decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(50)),
+                            child: const Icon(
+                              Icons.camera_alt_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
-                        ),
-                      ))
-                ],
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: "Name",
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.deepPurple,
-                        width: 2,
-                      )),
+                        ))
+                  ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  LengthLimitingTextInputFormatter(
-                      10), //limiting the length to 10 numbers only.
-                ],
-                controller: _phoneController,
-                decoration: InputDecoration(
-                    labelText: "Phone Number",
-                    prefixIcon: const Icon(Icons.phone),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _nameController,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: Validation.nameValidation,
+                  decoration: InputDecoration(
+                    labelText: "Name",
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
                         borderSide: const BorderSide(
                           color: Colors.deepPurple,
                           width: 2,
-                        ))),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  DropdownButton(
-                    menuMaxHeight: 200,
-                    underline: Container(
-                        height: 2, color: Colors.grey.withOpacity(0.5)),
-                    hint: const Text("Towers"),
-                    value: _towers,
-                    onChanged: (newValue) async {
-                      EasyLoading.show();
-                      QuerySnapshot querySnapshot = await FirebaseFirestore
-                          .instance
-                          .collection("Towers")
-                          .doc((newValue as Map)["id"])
-                          .collection("Flats")
-                          .get();
-                      flatList = [];
-                      for (int i = 0; i < querySnapshot.docs.length; i++) {
-                        QueryDocumentSnapshot doc = querySnapshot.docs[i];
-                        flatList.add((doc.data() as Map)['flatNumber']);
-                      }
+                        )),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  keyboardType: TextInputType.phone,
+                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: Validation.phoneValidation,
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                      labelText: "Phone Number",
+                      prefixIcon: const Icon(Icons.phone),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(
+                            color: Colors.deepPurple,
+                            width: 2,
+                          ))),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    DropdownButton(
+                      menuMaxHeight: 200,
+                      underline: Container(
+                          height: 2, color: Colors.grey.withOpacity(0.5)),
+                      hint: const Text("Towers"),
+                      value: _towers,
+                      onChanged: (newValue) async {
+                        EasyLoading.show();
+                        QuerySnapshot querySnapshot = await FirebaseFirestore
+                            .instance
+                            .collection("Towers")
+                            .doc((newValue as Map)["id"])
+                            .collection("Flats")
+                            .get();
+                        flatList = [];
+                        for (int i = 0; i < querySnapshot.docs.length; i++) {
+                          QueryDocumentSnapshot doc = querySnapshot.docs[i];
+                          flatList.add((doc.data() as Map)['flatNumber']);
+                        }
 
-                      setState(() {
-                        _towers = newValue;
-                        // flatList = flatNumbers;
-                        // _flats = newValue;
-                      });
-                      EasyLoading.dismiss();
-                    },
-                    items: towersList
-                        .map((e) =>
-                        DropdownMenuItem(value: e, child: Text(e["name"])))
-                        .toList(),
-                  ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  DropdownButton(
-                    menuMaxHeight: 200,
-                    underline: Container(
-                        height: 2, color: Colors.grey.withOpacity(0.5)),
-                    hint: const Text("Flats"),
-                    value: _flats,
-                    onChanged: (newValue) async {
-                      setState(() {
-                        _flats = newValue;
-                      });
+                        setState(() {
+                          _towers = newValue;
+                          // flatList = flatNumbers;
+                          // _flats = newValue;
+                        });
+                        EasyLoading.dismiss();
+                      },
+                      items: towersList
+                          .map((e) =>
+                          DropdownMenuItem(value: e, child: Text(e["name"])))
+                          .toList(),
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    DropdownButton(
+                      menuMaxHeight: 200,
+                      underline: Container(
+                          height: 2, color: Colors.grey.withOpacity(0.5)),
+                      hint: const Text("Flats"),
+                      value: _flats,
+                      onChanged: (newValue) async {
+                        setState(() {
+                          _flats = newValue;
+                        });
 
+                      },
+                      items: flatList
+                          .map((e) => DropdownMenuItem(value: e, child:Text(e)))
+                          .toList(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _purposeController,
+                  decoration: InputDecoration(
+                      hintText: "Purpose of Visit",
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(
+                            width: 2,
+                            color: Colors.deepPurple,
+                          ))),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                    style: ButtonStyle(elevation: MaterialStateProperty.all(8)),
+                    onPressed: () {
+                      saveData();
                     },
-                    items: flatList
-                        .map((e) => DropdownMenuItem(value: e, child:Text(e)))
-                        .toList(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _purposeController,
-                decoration: InputDecoration(
-                    hintText: "Purpose of Visit",
-                    focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: const BorderSide(
-                          width: 2,
-                          color: Colors.deepPurple,
-                        ))),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                  style: ButtonStyle(elevation: MaterialStateProperty.all(8)),
-                  onPressed: () {
-                    saveData();
-                  },
-                  child: const Text("Submit"))
-            ],
+                    child: const Text("Submit"))
+              ],
+            ),
           ),
         ));
   }

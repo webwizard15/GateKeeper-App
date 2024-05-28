@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/Material.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/GuardScreens/otp_verification.dart';
-import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class ResidentFlats extends StatefulWidget {
   const ResidentFlats({super.key, required this.towerId});
