@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/Material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ResidentMaidsLogs extends StatefulWidget {
   const ResidentMaidsLogs({super.key});
@@ -115,7 +116,17 @@ class _ResidentMaidsLogsState extends State<ResidentMaidsLogs> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Phone: $phoneNumber'),
+                          Row(
+                            children: [
+                              const Text("Phone :"),
+                              GestureDetector(
+                                  onTap: (){
+                                    final Uri number = Uri.parse("tel:$phoneNumber");
+                                    launchUrl(number);
+                                  },
+                                  child: Text(phoneNumber, style: const TextStyle(color: Colors.blueAccent),)),
+                            ],
+                          ),
                           const SizedBox(height: 5),
                           Text('Tower: $towerName'),
                           const SizedBox(height: 5),
@@ -215,7 +226,18 @@ class _ResidentMaidsLogsState extends State<ResidentMaidsLogs> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Phone: $maidPhoneNumber'),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const Text("Phone :"),
+                              GestureDetector(
+                                onTap: (){
+                                  final Uri phoneNumber = Uri.parse("tel:$maidPhoneNumber");
+                                  launchUrl(phoneNumber);
+                                },
+                                  child: Text(maidPhoneNumber, style:const  TextStyle(color: Colors.blueAccent),)),
+                            ],
+                          ),
                           const SizedBox(height: 5),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,

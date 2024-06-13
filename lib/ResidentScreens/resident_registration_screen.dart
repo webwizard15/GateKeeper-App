@@ -87,8 +87,7 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
     }
   }
 
-
-  Future<void> _saveData() async {
+  void _saveData() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (profilePic == null || _selectedSociety == null || _selectedTower == null || _selectedFlat == null) {
@@ -113,7 +112,7 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
         .get();
 
     if (documentSnapshot.docs.isNotEmpty) {
-      DialogBox.showDialogBox(context, "Resident already exists.");
+      DialogBox.showDialogBox(context, "Resident already occupied.");
       return;
     }
 
@@ -180,6 +179,8 @@ class _ResidentRegistrationState extends State<ResidentRegistration> {
           ]),
           child: AppBar(
             elevation: 0,
+            centerTitle: true,
+            title: const Text("Registration", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
           ),
         ),
       ),

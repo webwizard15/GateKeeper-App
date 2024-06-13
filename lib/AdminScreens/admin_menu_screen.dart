@@ -19,7 +19,8 @@ import 'maid_list.dart';
 import 'notice_screen.dart';
 
 class AdminMenuScreen extends StatefulWidget {
-  const AdminMenuScreen({Key? key}) : super(key: key);
+  const AdminMenuScreen({super.key});
+
   @override
   State<AdminMenuScreen> createState() => _AdminMenuScreenState();
 }
@@ -28,6 +29,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   String? adminName;
   File? profilePic;
   String? userId;
+  String? profilePhoto;
 
   @override
   void initState() {
@@ -36,27 +38,54 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
   }
 
   void _initializeData() async {
-    String? adminUserId =
-    (await SharedPreferences.getInstance()).getString("userId");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? adminUserId = prefs.getString("userId");
     if (adminUserId != null) {
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection("admins")
           .doc(adminUserId)
           .get();
-      DocumentSnapshot document = await FirebaseFirestore.instance
-          .collection("Society")
-          .doc(adminUserId)
-          .get();
-      if( document.exists){
+      if (doc.exists) {
         String? name = doc["name"];
+        String? picture = doc["profilePicture"];
         setState(() {
           adminName = name;
+          profilePhoto = picture;
+          userId = adminUserId;
         });
       }
+    }
+  }
 
+  Future<void> _uploadProfilePicture(File imageFile) async {
+    try {
+      EasyLoading.show();
+      UploadTask uploadTask = FirebaseStorage.instance
+          .ref()
+          .child("AdminProfilePictures")
+          .child(const Uuid().v1())
+          .putFile(imageFile);
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      await FirebaseFirestore.instance
+          .collection("admins")
+          .doc(userId)
+          .update({"profilePicture": downloadUrl});
       setState(() {
-        userId = adminUserId;
+        profilePhoto = downloadUrl;
       });
+      EasyLoading.dismiss();
+    } catch (e) {
+      EasyLoading.dismiss();
+      DialogBox.showDialogBox(context, "Unable to upload image");
+    }
+  }
+
+  Future<void> _selectImage(ImageSource source) async {
+    XFile? selectedImage = await ImagePicker().pickImage(source: source);
+    if (selectedImage != null) {
+      File convertedFile = File(selectedImage.path);
+      await _uploadProfilePicture(convertedFile);
     }
   }
 
@@ -104,12 +133,14 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                             width: 0.5, // Border width
                           ),
                         ),
-                        child: CircleAvatar(
+                        child: profilePhoto != null
+                            ? CircleAvatar(
                           radius: 50,
-                          backgroundImage: (profilePic != null)
-                              ? FileImage(profilePic!)
-                              : const AssetImage("assets/Man.png")
-                          as ImageProvider<Object>,
+                          backgroundImage: NetworkImage(profilePhoto!),
+                        )
+                            : const CircleAvatar(
+                          radius: 50,
+                          backgroundImage: AssetImage("assets/Man.png"),
                         ),
                       ),
                       Positioned(
@@ -129,45 +160,8 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                                   children: [
                                     ListTile(
                                       onTap: () async {
-                                        XFile? selectedImage =
-                                        await ImagePicker().pickImage(
-                                            source: ImageSource.gallery);
-
-                                        if (selectedImage != null) {
-                                          File convertedFile =
-                                          File(selectedImage.path);
-                                          try {
-                                            EasyLoading.show();
-                                            UploadTask uploadTask =
-                                            FirebaseStorage.instance
-                                                .ref()
-                                                .child("AdminProfilePictures")
-                                                .child(const Uuid().v1())
-                                                .putFile(convertedFile);
-                                            TaskSnapshot taskSnapshot =
-                                            await uploadTask;
-                                            String downloadUrl =
-                                            await taskSnapshot.ref
-                                                .getDownloadURL();
-                                            await FirebaseFirestore.instance
-                                                .collection("admins")
-                                                .doc(userId)
-                                                .update(
-                                                {"profilePicture": downloadUrl});
-                                            EasyLoading.dismiss();
-                                          } catch (e) {
-                                            DialogBox.showDialogBox(
-                                                context, "Unable to upload image");
-                                            EasyLoading.dismiss();
-                                          }
-                                          setState(() {
-                                            profilePic = convertedFile;
-                                          });
-                                          Navigator.pop(context);
-                                        } else {
-                                          Navigator.pop(context);
-                                          return;
-                                        }
+                                        await _selectImage(ImageSource.gallery);
+                                        Navigator.pop(context);
                                       },
                                       leading: const Icon(Icons.photo_library_outlined),
                                       title: const Text("Gallery"),
@@ -176,48 +170,10 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                                       title: const Text("Camera"),
                                       leading: const Icon(Icons.camera_alt_outlined),
                                       onTap: () async {
-                            XFile? selectedImage =
-                            await ImagePicker().pickImage(
-                            source: ImageSource.camera);
-
-                            if (selectedImage != null) {
-                            File convertedFile =
-                            File(selectedImage.path);
-                            try {
-                            EasyLoading.show();
-                            UploadTask uploadTask =
-                            FirebaseStorage.instance
-                                .ref()
-                                .child("AdminProfilePictures")
-                                .child(const Uuid().v1())
-                                .putFile(convertedFile);
-                            TaskSnapshot taskSnapshot =
-                            await uploadTask;
-                            String downloadUrl =
-                            await taskSnapshot.ref
-                                .getDownloadURL();
-                            await FirebaseFirestore.instance
-                                .collection("admins")
-                                .doc(userId)
-                                .update(
-                            {"profilePicture": downloadUrl});
-                            EasyLoading.dismiss();
-                            } catch (e) {
-                            DialogBox.showDialogBox(
-                            context, "Unable to upload image");
-                            EasyLoading.dismiss();
-                            }
-                            setState(() {
-                            profilePic = convertedFile;
-                            });
-                            Navigator.pop(context);
-                            } else {
-                            Navigator.pop(context);
-                            return;
-                            }
-
+                                        await _selectImage(ImageSource.camera);
+                                        Navigator.pop(context);
                                       },
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -241,18 +197,20 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                     ],
                   ),
                   Padding(
-                    padding:const EdgeInsets.only(top: 10),
-                    child: adminName!=null? Text(
-                      adminName!, // Should not exceed more than 18 words
+                    padding: const EdgeInsets.only(top: 10),
+                    child: adminName != null
+                        ? Text(
+                      adminName!,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
-                    ):const Text(
-                      "Admin", // Should not exceed more than 18 words
+                    )
+                        : const Text(
+                      "Admin",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
-                    ) ,
+                    ),
                   ),
                 ],
               ),
@@ -306,7 +264,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
               onTap: () async {
                 SharedPreferences shared =
                 await SharedPreferences.getInstance();
-                shared.clear(); //it will clear the id
+                shared.clear(); // it will clear the id
                 FirebaseAuth.instance.signOut();
                 Navigator.popUntil(
                     context, (route) => false); // it will clear the stack.
@@ -359,8 +317,7 @@ class _AdminMenuScreenState extends State<AdminMenuScreen> {
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage("assets/Guard.png"),
-                        fit: BoxFit
-                            .contain, // Use BoxFit.contain or BoxFit.scaleDown
+                        fit: BoxFit.contain, // Use BoxFit.contain or BoxFit.scaleDown
                       ),
                     ),
                   ),

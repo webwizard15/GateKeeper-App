@@ -177,6 +177,8 @@ class _TowerUpdationScreenState extends State<TowerUpdationScreen> {
           ]),
           child: AppBar(
             elevation: 0,
+            centerTitle: true,
+            title: const Text("Configure Your Tower", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
           ),
         ),
       ),

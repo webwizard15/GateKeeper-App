@@ -1,4 +1,4 @@
-import 'dart:ui';
+
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +6,7 @@ import 'package:flutter/Material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart.';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:gate_keeper_app/AdminScreens/admin_menu_screen.dart';
+
 import 'package:gate_keeper_app/ResidentScreens/resident_menu_screen.dart';
 import 'package:gate_keeper_app/ResidentScreens/resident_registration_screen.dart';
 import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
@@ -21,13 +21,66 @@ class ResidentSignInScreen extends StatefulWidget {
 class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
   final _aadharController = TextEditingController();
   final _phoneController = TextEditingController();
-  @override
+  void login()async {
+    String aadharNumber = _aadharController.text.trim();
+    String email = "$aadharNumber@gmail.com";
+    String phoneNumber = _phoneController.text.trim();
+    if (email.isEmpty || phoneNumber.isEmpty) {
+      DialogBox.showDialogBox(context, "Please fill all the Details.");
+      return;
+    }
+    try {
+      EasyLoading.show();
+      UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
+          .signInWithEmailAndPassword(
+        email: email,
+        password: phoneNumber, // Use a dummy password or another authentication method
+      );
+      if(userCredential.user!.email != null){
+        QuerySnapshot  data =   await FirebaseFirestore.instance.collection("resident").where("aadhar",isEqualTo: userCredential.user!.email!.replaceAll("@gmail.com", '')).get();
+        final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
+        Map? userData =  data.docs[0].data() as Map<String,dynamic>;  //converting obj to Map
+        if(userData["type"] == 1){    // admin
+          _prefs.setString("userId", data.docs[0].id);    //Stored Id in shared Preference
+          _prefs.setInt("type", userData["type"]);
+          _prefs.setString("society", userData["society"]);
+          //Stored type in shared Preference
+          Navigator.popUntil(context, (route) => false);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const ResidentMenuScreen()));
+          EasyLoading.dismiss();
+
+        }else{
+          DialogBox.showDialogBox(context, "Don't have resident access");
+          EasyLoading.dismiss();
+        }
+
+      }
+
+    } catch (e) {
+      if(e is FirebaseAuthException){
+        if(e.code == "user-not-found"){
+          DialogBox.showDialogBox(context, "User Not Found");
+          EasyLoading.dismiss();
+        } else{
+          DialogBox.showDialogBox(context, "Invalid Credentials");
+          EasyLoading.dismiss();
+          return;
+        }
+      } else{
+        DialogBox.showDialogBox(context,e.toString());
+        EasyLoading.dismiss();
+      }
+    }
+  }
+
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
           padding:
-              const EdgeInsets.only(top: 40, left: 30, right: 30, bottom: 0),
+          const EdgeInsets.only(top: 40, left: 30, right: 30, bottom: 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -63,10 +116,10 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
                 controller: _aadharController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                    labelText: "Aadhar Number",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                  labelText: "Aadhar Number",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
@@ -112,15 +165,16 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                      onPressed: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ResidentRegistration(),));
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const ResidentRegistration(),));
                       },
                       child: const Text("Registration ?",
                         style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.black,
-                        decoration: TextDecoration.underline,
-                      ),
+                          fontSize: 20,
+                          color: Colors.black,
+                          decoration: TextDecoration.underline,
+                        ),
                       )
                   ),
                 ],
@@ -130,63 +184,5 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
         ),
       ),
     );
-
-
-  }
-
-  void login()async {
-    String aadharNumber = _aadharController.text.trim();
-    String email = "$aadharNumber@gmail.com";
-    String phoneNumber = _phoneController.text.trim();
-    if (email.isEmpty || phoneNumber.isEmpty) {
-      DialogBox.showDialogBox(context, "Please fill all the Details.");
-      return;
-    }
-    try {
-          EasyLoading.show();
-      UserCredential userCredential =  await FirebaseAuth.instance           //sign in and return userInfo
-          .signInWithEmailAndPassword(
-        email: email,
-        password: phoneNumber, // Use a dummy password or another authentication method
-      );
-      if(userCredential.user!.email != null){
-        QuerySnapshot  data =   await FirebaseFirestore.instance.collection("resident").where("aadhaar",isEqualTo: userCredential.user!.email!.replaceAll("@gmail.com", '')).get();
-        final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
-        Map? userData =  data.docs[0].data() as Map<String,dynamic>;  //converting obj to Map
-        if(userData["type"] == 1){    // admin
-          _prefs.setString("userId", data.docs[0].id);    //Stored Id in shared Preference
-           _prefs.setInt("type", userData["type"]);
-           _prefs.setString("society", userData["society"]);
-          //Stored type in shared Preference
-          Navigator.popUntil(context, (route) => false);
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const ResidentMenuScreen()));
-          EasyLoading.dismiss();
-
-        }else{
-          DialogBox.showDialogBox(context, "Don't have resident access");
-          EasyLoading.dismiss();
-        }
-
-
-      }
-
-
-
-
-    } catch (e) {
-      if(e is FirebaseAuthException){
-        if(e.code == "user-not-found"){
-          DialogBox.showDialogBox(context, "User Not Found");
-          EasyLoading.dismiss();
-        } else{
-          DialogBox.showDialogBox(context, "Invalid Credentials");
-          EasyLoading.dismiss();
-          return;
-        }
-      } else{
-        DialogBox.showDialogBox(context,"An Error Occurred");
-      }
-    }
   }
 }

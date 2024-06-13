@@ -64,7 +64,7 @@ class _SignInScreenState extends State<AdminSignInScreen> {
           return;
         }
       } else{
-        DialogBox.showDialogBox(context,e.toString());
+        DialogBox.showDialogBox(context,"Incorrect Credentials");
         EasyLoading.dismiss();
       }
     }

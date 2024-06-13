@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 
@@ -81,7 +82,7 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
             title: Text(
               widget.title,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -94,11 +95,13 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.network(
-                widget.photo,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: 200,
+              InteractiveViewer(
+                child: Image.network(
+                  widget.photo,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 200,
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -136,7 +139,7 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
                     ),
                   ],
                 )
-                    : Text(
+                  : Text(
                   fetchedComment!,
                   style: const TextStyle(fontSize: 16),
                 ),

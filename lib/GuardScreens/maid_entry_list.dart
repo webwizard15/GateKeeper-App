@@ -2,6 +2,8 @@ import "package:cloud_firestore/cloud_firestore.dart";
 import "package:flutter/material.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
+import "../Widgets/dialogue_box.dart";
+
 class MaidEntryList extends StatefulWidget {
   const MaidEntryList({super.key});
 
@@ -13,6 +15,11 @@ class _MaidEntryListState extends State<MaidEntryList> {
   String? societyId;
 
   void updateData(String? societyId, String profilePicture, String name, String phoneNumber) async {
+     QuerySnapshot document= await FirebaseFirestore.instance.collection("residentVisit").where("societyId", isEqualTo:societyId ).where("contactNumber", isEqualTo: phoneNumber).where("isExit", isEqualTo: false).get();
+   if(document.docs.isNotEmpty){
+     DialogBox.showDialogBox(context, "Already Permitted");
+     return;
+   }
     await FirebaseFirestore.instance.collection("residentVisit").doc().set({
         "profilePicture": profilePicture,
       "name": name,
@@ -22,6 +29,7 @@ class _MaidEntryListState extends State<MaidEntryList> {
       "isMaid": true,
       "entryDate": DateTime.now(),
     });
+   DialogBox.showDialogBox(context, "Entry Granted");
   }
 
   @override

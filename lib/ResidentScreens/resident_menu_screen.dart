@@ -21,7 +21,8 @@ class ResidentMenuScreen extends StatefulWidget {
 class _ResidentMenuScreenState extends State<ResidentMenuScreen> {
   String? picture;
   String? residentName;
-
+  String? towerName;
+  String? flatNumber;
   @override
   void initState() {
     _initializeData();
@@ -34,9 +35,13 @@ class _ResidentMenuScreenState extends State<ResidentMenuScreen> {
       DocumentSnapshot doc = await FirebaseFirestore.instance.collection("resident").doc(residentUserId).get();
       String profilePic = doc["profilepic"];
       String name = doc["name"];
+      String flat = doc["flat"];
+      String tower = doc["towerName"];
       setState(() {
         picture = profilePic;
         residentName = name;
+        towerName = tower;
+        flatNumber = flat;
       });
     }
   }
@@ -57,7 +62,10 @@ class _ResidentMenuScreenState extends State<ResidentMenuScreen> {
               ),
             ],
           ),
-          child: AppBar(),
+          child: AppBar(
+            centerTitle: true,
+            title: Text("$towerName / $flatNumber", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+          ),
         ),
       ),
       drawer: Drawer(
