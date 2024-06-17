@@ -8,6 +8,8 @@ import 'package:gate_keeper_app/GuardScreens/resident_maid_logs.dart';
 import 'package:gate_keeper_app/GuardScreens/resident_towers.dart';
 import 'package:gate_keeper_app/GuardScreens/visitor_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../screens/menu_screen.dart';
 
 class GuardMenu extends StatefulWidget {
@@ -33,6 +35,13 @@ class _GuardMenuState extends State<GuardMenu> {
       DocumentSnapshot doc = await FirebaseFirestore.instance.collection("Guards").doc(guardUserId).get();
       String profilePic = doc["profilePic"];
       String name = doc["name"];
+      ZegoUIKitPrebuiltCallInvitationService().init(
+        appID: 1010249672, // Fill in the appID that you get from ZEGOCLOUD Admin Console.
+        appSign: '1c1dad81f5551368150befd8cb581df04cf03d5161f1fee95f2ebd4a7970e742', // Fill in the appSign that you get from ZEGOCLOUD Admin Console.
+        userID: guardUserId,
+        userName: name,
+        plugins: [ZegoUIKitSignalingPlugin()],
+      );
       setState(() {
         picture = profilePic;
         guardName = name;
@@ -133,6 +142,7 @@ class _GuardMenuState extends State<GuardMenu> {
                 SharedPreferences shared= await SharedPreferences.getInstance();
                 shared.clear();   //it will clear the id
                 FirebaseAuth.instance.signOut();
+                ZegoUIKitPrebuiltCallInvitationService().uninit();
                 Navigator.popUntil(context, (route) => false); // it will clear the stack.
                 Navigator.push(context, MaterialPageRoute(builder: (context)=> const MenuScreen()));
                 Navigator.push(context, MaterialPageRoute(builder: (context) =>const GuardSignInScreen(),));

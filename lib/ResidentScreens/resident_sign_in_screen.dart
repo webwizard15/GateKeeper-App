@@ -11,6 +11,8 @@ import 'package:gate_keeper_app/ResidentScreens/resident_menu_screen.dart';
 import 'package:gate_keeper_app/ResidentScreens/resident_registration_screen.dart';
 import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 class ResidentSignInScreen extends StatefulWidget {
   const ResidentSignInScreen({super.key});
@@ -40,9 +42,16 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
         QuerySnapshot  data =   await FirebaseFirestore.instance.collection("resident").where("aadhar",isEqualTo: userCredential.user!.email!.replaceAll("@gmail.com", '')).get();
         final SharedPreferences _prefs = await SharedPreferences.getInstance(); //calling sharedPreference instance
         Map? userData =  data.docs[0].data() as Map<String,dynamic>;  //converting obj to Map
-        if(userData["type"] == 1){    // admin
+        if(userData["type"] == 1){    // resident
           _prefs.setString("userId", data.docs[0].id);    //Stored Id in shared Preference
           _prefs.setInt("type", userData["type"]);
+          ZegoUIKitPrebuiltCallInvitationService().init(
+            appID: 1010249672, // Fill in the appID that you get from ZEGOCLOUD Admin Console.
+            appSign: '1c1dad81f5551368150befd8cb581df04cf03d5161f1fee95f2ebd4a7970e742', // Fill in the appSign that you get from ZEGOCLOUD Admin Console.
+            userID: data.docs[0].id,
+            userName: (data.docs[0].data()! as Map)['name'],
+            plugins: [ZegoUIKitSignalingPlugin()],
+          );
           _prefs.setString("society", userData["society"]);
           //Stored type in shared Preference
           Navigator.popUntil(context, (route) => false);
@@ -68,7 +77,7 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
           return;
         }
       } else{
-        DialogBox.showDialogBox(context,e.toString());
+        DialogBox.showDialogBox(context,"An error occurred");
         EasyLoading.dismiss();
       }
     }

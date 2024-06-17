@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/Widgets/dialogue_box.dart';
 
@@ -24,7 +23,7 @@ class AdminComplaintScreen extends StatefulWidget {
 class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
   final TextEditingController _commentController = TextEditingController();
   String? fetchedComment;
-   // Added loading state
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -33,11 +32,30 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
   }
 
   void fetchComment() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection(
-        "complaints").doc(widget.id).get();
-    if (doc.exists) {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("complaints")
+          .doc(widget.id)
+          .get();
+      if (doc.exists) {
+        Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+        setState(() {
+          if (data != null && data.containsKey('comment')) {
+            fetchedComment = data['comment'];
+          } else {
+            fetchedComment = null;
+          }
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      DialogBox.showDialogBox(context, "Error fetching data: $e");
       setState(() {
-        fetchedComment = doc['comment'];
+        isLoading = false;
       });
     }
   }
@@ -48,16 +66,19 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
       DialogBox.showDialogBox(context, "Please write a comment");
       return;
     } else {
-      await FirebaseFirestore.instance.collection("complaints")
-          .doc(widget.id)
-          .update({
-        "isClosed": true,
-        "comment": comment,
-      });
-      setState(() {
-        fetchedComment =
-            comment; // Update fetchedComment after adding the comment
-      });
+      try {
+        await FirebaseFirestore.instance.collection("complaints")
+            .doc(widget.id)
+            .update({
+          "isClosed": true,
+          "comment": comment,
+        });
+        setState(() {
+          fetchedComment = comment;
+        });
+      } catch (e) {
+        DialogBox.showDialogBox(context, "Error uploading data: $e");
+      }
     }
   }
 
@@ -89,7 +110,9 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -117,32 +140,30 @@ class _AdminComplaintScreenState extends State<AdminComplaintScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              fetchedComment ==
-                    null
-                    ? Column(
-                  children: [
-                    TextField(
-                      controller: _commentController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: 'Add a comment...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+              fetchedComment == null
+                  ? Column(
+                children: [
+                  TextField(
+                    controller: _commentController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Add a comment...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: uploadData,
-                      child: const Text('Submit'),
-                    ),
-                  ],
-                )
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: uploadData,
+                    child: const Text('Submit'),
+                  ),
+                ],
+              )
                   : Text(
-                  fetchedComment!,
-                  style: const TextStyle(fontSize: 16),
-                ),
+                fetchedComment!,
+                style: const TextStyle(fontSize: 16),
+              ),
             ],
           ),
         ),

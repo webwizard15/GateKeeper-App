@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gate_keeper_app/GuardScreens/voiceCalling.dart';
 import 'package:gate_keeper_app/ResidentScreens/approvals_request_screens.dart';
 import 'package:gate_keeper_app/ResidentScreens/complaint.dart';
 import 'package:gate_keeper_app/ResidentScreens/notice_list.dart';
@@ -10,6 +11,8 @@ import 'package:gate_keeper_app/ResidentScreens/society_details.dart';
 import 'package:gate_keeper_app/ResidentScreens/visitor_list.dart';
 import 'package:gate_keeper_app/screens/menu_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 
 class ResidentMenuScreen extends StatefulWidget {
   const ResidentMenuScreen({super.key});
@@ -37,6 +40,13 @@ class _ResidentMenuScreenState extends State<ResidentMenuScreen> {
       String name = doc["name"];
       String flat = doc["flat"];
       String tower = doc["towerName"];
+      ZegoUIKitPrebuiltCallInvitationService().init(
+        appID: 1010249672, // Fill in the appID that you get from ZEGOCLOUD Admin Console.
+        appSign: '1c1dad81f5551368150befd8cb581df04cf03d5161f1fee95f2ebd4a7970e742', // Fill in the appSign that you get from ZEGOCLOUD Admin Console.
+        userID: residentUserId,
+        userName: name,
+        plugins: [ZegoUIKitSignalingPlugin()],
+      );
       setState(() {
         picture = profilePic;
         residentName = name;
@@ -149,6 +159,7 @@ class _ResidentMenuScreenState extends State<ResidentMenuScreen> {
               onTap: () async {
                 FirebaseAuth.instance.signOut();
                 (await SharedPreferences.getInstance()).clear();
+                ZegoUIKitPrebuiltCallInvitationService().uninit();
                 Navigator.popUntil(context, (route) => false);
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const MenuScreen()));
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const ResidentSignInScreen()));
@@ -162,109 +173,116 @@ class _ResidentMenuScreenState extends State<ResidentMenuScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 30),
-          child: Center(
-            child: Column(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const RequestApprovalScreen()));
-                  },
-                  style: ButtonStyle(
-                    elevation: MaterialStateProperty.all(10),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+      body:
+      Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 30),
+              child: Center(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const RequestApprovalScreen()));
+                      },
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(10),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        height: 150,
+                        width: 100,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/Approvals.png"),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  child: Container(
-                    height: 150,
-                    width: 100,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("assets/Approvals.png"),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Approvals",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Approvals",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NoticeList()));
-                  },
-                  style: ButtonStyle(
-                    elevation: MaterialStateProperty.all(10),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const NoticeList()));
+                      },
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(10),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        height: 150,
+                        width: 100,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/Notice.png"),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  child: Container(
-                    height: 150,
-                    width: 100,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("assets/Notice.png"),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Notice",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Notice",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ComplaintScreen()));
-                  },
-                  style: ButtonStyle(
-                    elevation: MaterialStateProperty.all(10),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ComplaintScreen()));
+                      },
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all(10),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      child: Container(
+                        height: 150,
+                        width: 100,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/Report.png"),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  child: Container(
-                    height: 150,
-                    width: 100,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("assets/Report.png"),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "Complaints",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Complaints",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+          Positioned(top:0, child: SizedBox(width: MediaQuery.of(context).size.width, child: const Center(child: ReciveCalls(),),)),
+        ],
       ),
+
     );
   }
 }

@@ -65,10 +65,7 @@ class _SocietyDetailsState extends State<SocietyDetails> {
   }
 
   Future<void> _launchEmail(String email) async {
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: email,
-    );
+    final Uri emailUri = Uri(scheme: 'mailto', path: email);
     if (await canLaunchUrl(emailUri)) {
       await launchUrl(emailUri);
     } else {
@@ -77,15 +74,173 @@ class _SocietyDetailsState extends State<SocietyDetails> {
   }
 
   Future<void> _launchPhone(String phoneNumber) async {
-    final Uri phoneUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
     } else {
       throw 'Could not launch $phoneUri';
     }
+  }
+
+  Widget _buildLoading() {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  Widget _buildError() {
+    return const Center(
+      child: Text(
+        "Failed to load data. Please try again.",
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildSocietyDetails(QueryDocumentSnapshot doc) {
+    final String societyName = doc["SocietyName"];
+    final String societyAddress = doc["SocietyAddress"];
+    final String societyEmailId = doc["SocietyEmailID"];
+    final String state = doc["State"];
+    final String city = doc["City"];
+
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            societyName,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 25,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _launchEmail(societyEmailId),
+            child: Text(
+              societyEmailId,
+              style: const TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.deepPurple,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          Text(
+            "$societyAddress\n$city, $state,",
+            style: const TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 30),
+          const Text(
+            "Administrative Details",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 30),
+          Row(
+            children: [
+              const Icon(Icons.people, size: 18),
+              const SizedBox(width: 10),
+              Text(
+                adminName!,
+                style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Icon(Icons.email, size: 18),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () => _launchEmail(adminEmail!),
+                child: Text(
+                  adminEmail!,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 18,
+                    color: Colors.deepPurple,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Icon(Icons.phone_android, size: 18),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () => _launchPhone(adminPhoneNumber!),
+                child: Text(
+                  adminPhoneNumber!,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18,
+                    color: Colors.deepPurple,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+          Container(
+            height: 200,
+            width: 150,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/Building.png"),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (isLoading) {
+      return _buildLoading();
+    }
+
+    if (societyId == null || adminName == null || adminEmail == null || adminPhoneNumber == null) {
+      return _buildError();
+    }
+
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection("Society")
+          .where("adminId", isEqualTo: societyId)
+          .get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text(
+              "No Data Available",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          );
+        }
+
+        final doc = snapshot.data!.docs.first;
+        return SingleChildScrollView(child: _buildSocietyDetails(doc));
+      },
+    );
   }
 
   @override
@@ -114,164 +269,7 @@ class _SocietyDetailsState extends State<SocietyDetails> {
           ),
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : societyId == null || adminName == null || adminEmail == null || adminPhoneNumber == null
-          ? const Center(
-        child: Text(
-          "Failed to load data. Please try again.",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      )
-          : SingleChildScrollView(
-            child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-            FutureBuilder<QuerySnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection("Society")
-                  .where("adminId", isEqualTo: societyId)
-                  .get(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Expanded(
-                    child: Center(
-                      child: Text("Error: ${snapshot.error}"),
-                    ),
-                  );
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Expanded(
-                    child: Center(
-                      child: Text(
-                        "No Data Available",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  );
-                }
-            
-                final doc = snapshot.data!.docs.first;
-                final String societyName = doc["SocietyName"];
-                final String societyAddress = doc["SocietyAddress"];
-                final String societyEmailId = doc["SocietyEmailID"];
-                final String state = doc["State"];
-                final String city = doc["City"];
-            
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        Text(
-                          societyName,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 25,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _launchEmail(societyEmailId),
-                          child: Text(
-                            societyEmailId,
-                            style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.deepPurple,
-                                decoration: TextDecoration.underline),
-                          ),
-                        ),
-                        Text(
-                          "$societyAddress\n$city, $state,",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        const Text(
-                          "Administrative Details",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        Row(
-                          children: [
-                            const Icon(Icons.people, size: 18),
-                            const SizedBox(width: 10),
-                            Text(
-                              adminName!,
-                              style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.email, size: 18),
-                            const SizedBox(width: 10),
-                            GestureDetector(
-                              onTap: () => _launchEmail(adminEmail!),
-                              child: Text(
-                                adminEmail!,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 18,
-                                    color: Colors.deepPurple,
-                                    decoration: TextDecoration.underline),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.phone_android, size: 18),
-                            const SizedBox(width: 10),
-                            GestureDetector(
-                              onTap: () => _launchPhone(adminPhoneNumber!),
-                              child: Text(
-                                adminPhoneNumber!,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 18,
-                                    color: Colors.deepPurple,
-                                    decoration: TextDecoration.underline),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 40),
-                        Container(
-                          height: 200,
-                          width: 150,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage("assets/Building.png"),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-                    ],
-                  ),
-          ),
+      body: _buildContent(),
     );
   }
 }

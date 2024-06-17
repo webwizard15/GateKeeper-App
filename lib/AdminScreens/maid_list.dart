@@ -19,9 +19,11 @@ class _MaidListScreenState extends State<MaidListScreen> {
   }
 
   void _initializeData() async {
-    String? userId =
-        (await SharedPreferences.getInstance()).getString("userId");
-    societyUserId = userId;
+    String? userId = (await SharedPreferences.getInstance()).getString("userId");
+    setState(() {
+      societyUserId = userId;
+    });
+
   }
 
   @override

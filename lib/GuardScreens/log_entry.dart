@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:gate_keeper_app/GuardScreens/voiceCalling.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 class LogEntryList extends StatefulWidget {
   const LogEntryList({super.key});
@@ -110,7 +112,7 @@ class _LogEntryListState extends State<LogEntryList> {
                             const SizedBox(width: 10),
                             // Name, Purpose, and Status
                             Expanded(
-                              flex: 2,
+                              flex: 1,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -155,26 +157,59 @@ class _LogEntryListState extends State<LogEntryList> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-                                              .collection("resident")
-                                              .where("tower", isEqualTo: towerId)
-                                              .where("flat", isEqualTo: flatNumber)
-                                              .get();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => CallPage(
-                                                callID: querySnapshot.docs[0].id,
-                                                userId: querySnapshot.docs[0].id,
-                                                userName: querySnapshot.docs[0]["name"],
-                                              ),
-                                            ),
+                                      SizedBox(
+                                        height: 80,
+                                        child: FutureBuilder(future:FirebaseFirestore.instance
+                                          .collection("resident")
+                                          .where("tower", isEqualTo: towerId)
+                                          .where("flat", isEqualTo: flatNumber)
+                                          .get() , builder: (context, resSnap){
+                                        if(resSnap.hasData && (resSnap.connectionState == ConnectionState.done || resSnap.connectionState == ConnectionState.active)){
+                                          return ZegoSendCallInvitationButton(
+                                            isVideoCall: true,
+                                            buttonSize:const Size(30,20),
+                                            //You need to use the resourceID that you created in the subsequent steps.
+                                            //Please continue reading this document.
+                                            resourceID: "zegouikit_call",
+                                            invitees: [
+                                              ZegoUIKitUser(
+                                                id: resSnap.data!.docs[0].id,
+                                                name: (resSnap.data!.docs[0].data() as Map)['name'],
+                                              )
+                                            ],
                                           );
-                                        },
-                                        child: const Icon(Icons.phone, size: 18),
-                                      ),
+                                        }
+                                        return SizedBox.shrink();
+                                      }),),
+                                      // GestureDetector(
+                                      //   onTap: () async {
+                                      //     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+                                      //         .collection("resident")
+                                      //         .where("tower", isEqualTo: towerId)
+                                      //         .where("flat", isEqualTo: flatNumber)
+                                      //         .get();
+                                      //
+                                      //     QuerySnapshot querySnapshots = await FirebaseFirestore.instance.collection("Visitors").where("SocietyId", isEqualTo: societyId).get();
+                                      //     await FirebaseFirestore.instance.collection("calling").add({
+                                      //       'callID': querySnapshot.docs[0].id + querySnapshots.docs[0].id,
+                                      //       'userId': querySnapshot.docs[0].id + querySnapshots.docs[0].id,
+                                      //       'resId':  querySnapshot.docs[0].id,
+                                      //       'guardId': (await SharedPreferences.getInstance()).getString('userId')
+                                      //     });
+                                      //     FirebaseMessaging.instance.sendMessage();
+                                      //     Navigator.push(
+                                      //       context,
+                                      //       MaterialPageRoute(
+                                      //         builder: (context) => CallPage(
+                                      //           callID: querySnapshot.docs[0].id,
+                                      //           userId: querySnapshot.docs[0].id,
+                                      //           userName: querySnapshot.docs[0]["name"],
+                                      //         ),
+                                      //       ),
+                                      //     );
+                                      //   },
+                                      //   child: const Icon(Icons.phone, size: 18),
+                                      //   ),
                                       const SizedBox(width: 15,)
                                     ],
                                   ),

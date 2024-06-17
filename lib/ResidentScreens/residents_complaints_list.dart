@@ -102,88 +102,86 @@ class _ResidentsComplaintsLogState extends State<ResidentsComplaintsLog> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
           final docs = snapshot.data?.docs;
-          return Expanded(
-            child: ListView.builder(
-              itemCount: docs?.length,
-              itemBuilder: (context, index) {
-                String complaintTitle = docs?[index]["title"];
-                String flatNumber = docs?[index]["flat"];
-                String towerName = docs?[index]["towerName"];
-                String image = docs?[index]["complaintImage"];
-                String complaint = docs?[index]["complaint"];
-                String? complaintId = docs?[index].id;
-                Timestamp timestamp = docs?[index]["timestamp"];
-                DateTime date = timestamp.toDate();
-                String formattedDate = DateFormat('dd MMM yyyy').format(date);
-                return Padding(
-                  padding: const EdgeInsets.only(top: 5, bottom: 5),
-                  child: Material(
-                    elevation: 5,
-                    child: ListTile(
-                      onTap: () {
-                        if(myIndex==1) {
-                          Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AdminComplaintScreen(
-                              title: complaintTitle,
-                              description: complaint,
-                              photo: image,
-                              id: complaintId,
-                            ),
-                          ),
-                        );
-                        }
-                      },
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: NetworkImage(image),
-                            fit: BoxFit.cover,
+          return ListView.builder(
+            itemCount: docs?.length,
+            itemBuilder: (context, index) {
+              String complaintTitle = docs?[index]["title"];
+              String flatNumber = docs?[index]["flat"];
+              String towerName = docs?[index]["towerName"];
+              String image = docs?[index]["complaintImage"];
+              String complaint = docs?[index]["complaint"];
+              String? complaintId = docs?[index].id;
+              Timestamp timestamp = docs?[index]["timestamp"];
+              DateTime date = timestamp.toDate();
+              String formattedDate = DateFormat('dd MMM yyyy').format(date);
+              return Padding(
+                padding: const EdgeInsets.only(top: 5, bottom: 5),
+                child: Material(
+                  elevation: 5,
+                  child: ListTile(
+                    onTap: () {
+                      if(myIndex==1) {
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminComplaintScreen(
+                            title: complaintTitle,
+                            description: complaint,
+                            photo: image,
+                            id: complaintId,
                           ),
                         ),
-                      ),
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            complaintTitle,
-                            maxLines: 1,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 5),
-                        ],
-                      ),
-                      subtitle: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(towerName),
-                              Text(flatNumber),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const SizedBox(width: 5,),
-                              Text(
-                                formattedDate,
-                                style: const TextStyle(color: Colors.black, fontSize: 10),
-                              ),
-
-                            ],
-                          )
-                        ],
+                      );
+                      }
+                    },
+                    leading: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: NetworkImage(image),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          complaintTitle,
+                          maxLines: 1,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 5),
+                      ],
+                    ),
+                    subtitle: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(towerName),
+                            Text(flatNumber),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SizedBox(width: 5,),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(color: Colors.black, fontSize: 10),
+                            ),
+
+                          ],
+                        )
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           );
         }
       },

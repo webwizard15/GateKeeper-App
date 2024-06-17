@@ -6,6 +6,8 @@ import 'package:flutter/material.dart.';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gate_keeper_app/GuardScreens/guard_menu_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../Widgets/dialogue_box.dart';
 
 class GuardSignInScreen extends StatefulWidget {
@@ -40,6 +42,7 @@ class _GuardSignInScreenState extends State<GuardSignInScreen> {
            _prefs.setString("userId", data.docs[0].id);    //Stored Id in shared Preference
            _prefs.setInt("type", userData["type"]);
            _prefs.setString("society", userData["SocietyId"]);
+
            //Stored type in shared Preference
            Navigator.popUntil(context, (route) => false);
            Navigator.push(context,

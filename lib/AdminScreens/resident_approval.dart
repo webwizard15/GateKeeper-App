@@ -22,7 +22,10 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
   }
 
   void getUserId() async {
-    userId = (await SharedPreferences.getInstance()).getString("userId");
+   String? userSocietyId = (await SharedPreferences.getInstance()).getString("userId");
+   setState(() {
+     userId = userSocietyId;
+   });
   }
 
   @override
@@ -67,28 +70,13 @@ class _ResidentApprovalScreenState extends State<ResidentApprovalScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Expanded(
-              child: SizedBox(
-                  height: MediaQuery.sizeOf(context).height,
-                  width: MediaQuery.sizeOf(context).width,
-                  child: const Center(child: CircularProgressIndicator())),
-            );
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Expanded(
-              child: SizedBox(
-                  height: MediaQuery.sizeOf(context).height,
-                  width: MediaQuery.sizeOf(context).width,
-                  child: Center(child: Text('Error: ${snapshot.error}'))),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             final totalResidents = snapshot.data!.docs.toList();
             if(totalResidents.every((element) =>element["isAccepted"] == true ) && myIndex == 0){
-              return Expanded(
-                child: SizedBox(
-                    height: MediaQuery.sizeOf(context).height,
-                    width: MediaQuery.sizeOf(context).width,
-                    child: const Center(child: Text("No Pending Requests..", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),))),
-              );
+              return const Center(child: Text("No Pending Requests..", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),));
             }
             return ListView.builder(
               itemCount: totalResidents.length,
