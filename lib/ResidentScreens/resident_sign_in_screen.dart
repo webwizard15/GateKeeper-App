@@ -60,7 +60,7 @@ class _ResidentSignInScreenState extends State<ResidentSignInScreen> {
           EasyLoading.dismiss();
 
         }else{
-          DialogBox.showDialogBox(context, "Don't have resident access");
+          DialogBox.showDialogBox(context, "User Not Found");
           EasyLoading.dismiss();
         }
 

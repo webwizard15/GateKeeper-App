@@ -67,7 +67,7 @@ class _GuardSignInScreenState extends State<GuardSignInScreen> {
            return;
          }
        } else{
-         DialogBox.showDialogBox(context,"An Error Occurred: $e");
+         DialogBox.showDialogBox(context,"User Not Found");
          EasyLoading.dismiss();
        }
      }
